@@ -1,0 +1,26 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('phone')->nullable()->after('avatar');
+            $table->string('profile_photo')->nullable()->after('phone');
+            $table->string('theme')->default('light')->after('profile_photo');
+            $table->json('notification_preferences')->nullable()->after('theme');
+            $table->json('app_preferences')->nullable()->after('notification_preferences');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn(['phone', 'profile_photo', 'theme', 'notification_preferences', 'app_preferences']);
+        });
+    }
+};
