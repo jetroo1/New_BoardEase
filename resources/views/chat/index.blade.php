@@ -13,13 +13,13 @@
     .conv-header { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
     .conv-header h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
     .conv-search { position: relative; }
-    .conv-search input { width: 100%; padding: 8px 12px 8px 34px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none; background: var(--bg); transition: border-color 0.2s; }
+    .conv-search input { width: 100%; padding: 8px 12px 8px 34px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none; background: var(--bg); color: var(--text); transition: border-color 0.2s; }
     .conv-search input:focus { border-color: var(--teal); }
     .conv-search i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.78rem; }
     .conv-list { flex: 1; overflow-y: auto; padding: 8px; }
     .conv-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; cursor: pointer; transition: background 0.15s; position: relative; }
     .conv-item:hover { background: var(--bg); }
-    .conv-item.active { background: #eff6ff; }
+    .conv-item.active { background: color-mix(in srgb, var(--blue-accent) 10%, var(--card)); }
     .conv-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: #fff; }
     .online-dot { position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; background: var(--green); border-radius: 50%; border: 2px solid var(--card); }
     .conv-info { flex: 1; overflow: hidden; }
@@ -38,9 +38,9 @@
     .chat-peer-status { font-size: 0.75rem; color: var(--green); display: flex; align-items: center; gap: 4px; }
     .chat-actions { display: flex; gap: 8px; }
     .call-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .call-btn.voice { background: #f0fdf4; color: var(--green); }
+    .call-btn.voice { background: color-mix(in srgb, var(--green) 12%, var(--card)); color: var(--green); }
     .call-btn.voice:hover { background: var(--green); color: #fff; }
-    .call-btn.video { background: #eff6ff; color: var(--blue-accent); }
+    .call-btn.video { background: color-mix(in srgb, var(--blue-accent) 12%, var(--card)); color: var(--blue-accent); }
     .call-btn.video:hover { background: var(--blue-accent); color: #fff; }
     .call-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -74,8 +74,8 @@
     .toolbar-btn:hover { background: var(--border); color: var(--text); }
     .input-row { display: flex; gap: 10px; align-items: flex-end; }
     .msg-input-wrap { flex: 1; position: relative; }
-    .msg-input { width: 100%; min-height: 44px; max-height: 120px; padding: 11px 44px 11px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; outline: none; resize: none; background: var(--bg); transition: border-color 0.2s; line-height: 1.4; }
-    .msg-input:focus { border-color: var(--teal); background: #fff; }
+    .msg-input { width: 100%; min-height: 44px; max-height: 120px; padding: 11px 44px 11px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; outline: none; resize: none; background: var(--bg); color: var(--text); transition: border-color 0.2s; line-height: 1.4; }
+    .msg-input:focus { border-color: var(--teal); background: var(--card); }
     .emoji-btn { position: absolute; right: 12px; bottom: 10px; background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-muted); transition: transform 0.2s; }
     .emoji-btn:hover { transform: scale(1.2); }
     .send-btn { width: 44px; height: 44px; background: var(--navy); color: #fff; border: none; border-radius: 12px; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -140,9 +140,13 @@
     .btn-decline { flex: 1; padding: 10px; border: none; border-radius: 10px; background: var(--red); color: #fff; font-family: 'DM Sans',sans-serif; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; }
     .btn-decline:hover { background: #dc2626; }
 
-    .realtime-badge { display: inline-flex; align-items: center; gap: 5px; background: #f0fdf4; color: #16a34a; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; border: 1px solid #bbf7d0; }
-    .rt-dot { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; animation: rtPulse 1.5s infinite; }
+    .realtime-badge { display: inline-flex; align-items: center; gap: 5px; background: color-mix(in srgb, var(--green) 12%, var(--card)); color: var(--green); font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--green) 30%, var(--card)); }
+    .rt-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: rtPulse 1.5s infinite; }
     @keyframes rtPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── Modal input dark mode fix ── */
+    .modal-card input { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
+    .modal-card input:focus { border-color: var(--teal); outline: none; }
 </style>
 @endpush
 
@@ -270,7 +274,7 @@
             <button onclick="closeNewConvModal()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--text-muted);"><i class="fas fa-times"></i></button>
         </div>
         <input type="text" id="userSearch" placeholder="Search users..." oninput="filterUsers(this.value)"
-            style="padding:9px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;width:100%;">
+            style="padding:9px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;width:100%;background:var(--bg);color:var(--text);">
         <div class="user-list" id="userList">
             @foreach($allUsers as $u)
             <div class="user-item" data-name="{{ strtolower($u['name']) }}" onclick="startConversation({{ $u['id'] }})">
@@ -396,7 +400,6 @@ function initEcho() {
 }
 
 // ── Send WebRTC signal ────────────────────────────────────────
-// FIX: Removed JSON.parse(JSON.stringify(payload)) which was corrupting SDP strings.
 async function sendSignal(type, payload) {
     if (!currentConvId) return;
     try {
@@ -417,8 +420,6 @@ async function handleSignal(e) {
     if (type === 'offer') {
         incomingOffer    = payload;
         incomingCallType = payload.callType;
-        // FIX: Use the conversation_id broadcast by the server — not just currentConvId.
-        // This ensures acceptCall() sends the answer to the correct conversation channel.
         incomingConvId   = e.conversation_id ?? currentConvId;
         showIncomingCall(sender_name, payload.callType);
         return;
@@ -435,8 +436,6 @@ async function handleSignal(e) {
         return;
     }
 
-    // FIX: Use payload.type and payload.sdp directly — no unsafe string reconstruction.
-    // Also guard with signalingState check to avoid calling setRemoteDescription at wrong time.
     if (type === 'answer' && peerConnection) {
         try {
             if (peerConnection.signalingState !== 'have-local-offer') return;
@@ -527,9 +526,6 @@ async function startCall(type) {
 async function acceptCall() {
     hideIncomingCall();
 
-    // FIX: Switch currentConvId to the conversation the call came from.
-    // Without this, sendSignal() posts to the wrong /chat/{id}/signal endpoint
-    // and the caller never receives the answer.
     if (incomingConvId) currentConvId = incomingConvId;
 
     callType = incomingCallType;
@@ -558,8 +554,6 @@ async function acceptCall() {
     peerConnection = createPeerConnection();
     localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-    // FIX: Use incomingOffer.type and incomingOffer.sdp directly.
-    // Previous version did typeof checks + JSON.stringify which corrupted the SDP.
     try {
         await peerConnection.setRemoteDescription(new RTCSessionDescription({
             type: incomingOffer.type,

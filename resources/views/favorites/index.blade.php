@@ -3,18 +3,116 @@
 @section('title', 'Favorites')
 @section('search-placeholder', 'Search favorites...')
 
+@push('styles')
+<style>
+.fav-page-title { color: var(--text); }
+.fav-page-sub   { color: var(--text-muted); }
+
+.fav-empty-icon  { color: var(--text-muted); }
+.fav-empty-title { color: var(--text-muted); }
+.fav-empty-sub   { color: var(--text-muted); }
+
+.fav-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.fav-card:hover {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    transform: translateY(-4px);
+}
+.fav-card-img-wrap {
+    background: var(--border);
+}
+.fav-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+.fav-card-address {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+.fav-tag {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 2px 10px;
+    border-radius: 6px;
+}
+.fav-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #e8692a;
+}
+.fav-price-mo {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+.fav-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+.fav-divider {
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+    padding-top: 12px;
+}
+.fav-btn-dark {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    background: var(--navy);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+.fav-btn-dark:hover { background: var(--navy-light); }
+.fav-btn-teal {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    background: var(--teal);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+.fav-btn-teal:hover { background: var(--teal-dark); }
+</style>
+@endpush
+
 @section('content')
 <div class="mb-6">
-    <h1 class="font-syne text-3xl font-bold text-slate-800">Favorites</h1>
-    <p class="text-sm text-slate-500 mt-1">Boarding houses you've saved for later</p>
+    <h1 class="font-syne text-3xl font-bold fav-page-title">Favorites</h1>
+    <p class="text-sm mt-1 fav-page-sub">Boarding houses you've saved for later</p>
 </div>
 
 @if($favorites->isEmpty())
-<div class="flex flex-col items-center justify-center py-20 text-slate-400">
+<div class="flex flex-col items-center justify-center py-20 fav-empty-icon">
     <i class="fas fa-heart text-5xl mb-4 opacity-20"></i>
-    <p class="text-base font-semibold">No favorites yet</p>
-    <p class="text-sm mt-1">Start saving boarding houses you like!</p>
-    <a href="{{ route('search') }}" 
+    <p class="text-base font-semibold fav-empty-title">No favorites yet</p>
+    <p class="text-sm mt-1 fav-empty-sub">Start saving boarding houses you like!</p>
+    <a href="{{ route('search') }}"
        class="mt-4 px-5 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-lg transition">
         Browse Properties
     </a>
@@ -25,11 +123,10 @@
     @foreach($favorites as $fav)
     @php $property = $fav->property; @endphp
     @if($property)
-    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden transition duration-200 hover:shadow-xl hover:-translate-y-1"
-         id="fav-card-{{ $property->id }}">
+    <div class="fav-card" id="fav-card-{{ $property->id }}">
 
         {{-- Image --}}
-        <div class="relative h-44 bg-slate-200 overflow-hidden">
+        <div class="relative h-44 fav-card-img-wrap overflow-hidden">
             <img src="{{ $property->image ? Storage::url($property->image) : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&q=80' }}"
                  alt="{{ $property->title }}"
                  loading="lazy"
@@ -50,9 +147,9 @@
 
         {{-- Body --}}
         <div class="p-4">
-            <div class="text-base font-bold text-slate-800 mb-1">{{ $property->title }}</div>
+            <div class="fav-card-title">{{ $property->title }}</div>
 
-            <div class="flex items-center gap-1 text-xs text-slate-500 mb-3">
+            <div class="fav-card-address">
                 <i class="fas fa-map-marker-alt text-teal-500"></i>
                 {{ $property->address }}
             </div>
@@ -61,33 +158,29 @@
             @if($property->amenities)
             <div class="flex flex-wrap gap-1.5 mb-3">
                 @foreach(array_slice(is_array($property->amenities) ? $property->amenities : explode(',', $property->amenities), 0, 3) as $tag)
-                <span class="bg-slate-100 border border-slate-200 text-slate-500 text-xs font-medium px-2.5 py-0.5 rounded-md">
-                    {{ trim($tag) }}
-                </span>
+                <span class="fav-tag">{{ trim($tag) }}</span>
                 @endforeach
             </div>
             @endif
 
             {{-- Price & Rating --}}
             <div class="flex items-center justify-between">
-                <div class="text-lg font-bold text-orange-500">
+                <div class="fav-price">
                     ₱{{ number_format($property->price) }}
-                    <span class="text-xs text-slate-400 font-normal">/mo</span>
+                    <span class="fav-price-mo">/mo</span>
                 </div>
-                <div class="flex items-center gap-1 text-sm font-semibold text-slate-500">
+                <div class="fav-rating">
                     <i class="fas fa-star text-yellow-400"></i>
                     {{ $property->reviews_avg_rating ? number_format($property->reviews_avg_rating, 1) : '—' }}
                 </div>
             </div>
 
             {{-- Action Buttons --}}
-            <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-                <a href="{{ route('property.show', $property->id) }}"
-                   class="flex-1 text-center py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg transition">
+            <div class="fav-divider flex gap-2">
+                <a href="{{ route('property.show', $property->id) }}" class="fav-btn-dark">
                     View Details
                 </a>
-                <a href="{{ route('property.show', $property->id) }}"
-                   class="flex-1 text-center py-2 px-3 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-lg transition">
+                <a href="{{ route('property.show', $property->id) }}" class="fav-btn-teal">
                     Book Now
                 </a>
             </div>

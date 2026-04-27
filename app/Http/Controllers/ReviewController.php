@@ -62,7 +62,7 @@ class ReviewController extends Controller
             'property_id' => 'required|exists:properties,id',
             'booking_id'  => 'nullable|exists:bookings,id',
             'rating'      => 'required|integer|min:1|max:5',
-            'body'        => 'required|string|min:10|max:1000',
+            'body'        => 'required|string|min:1|max:1000',
         ]);
 
         $user = Auth::user();

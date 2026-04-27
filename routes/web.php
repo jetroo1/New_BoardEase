@@ -16,10 +16,16 @@ Route::middleware('guest')->group(function () {
     Route::post('/login',   [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register',[AuthController::class, 'register']);
-    Route::get('/auth/google', [AuthController::class, 'googleRedirect'])->name('auth.google');
+
+    // Google OAuth
+    Route::get('/auth/google',          [AuthController::class, 'googleRedirect'])->name('auth.google');
     Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
-    Route::get('/auth/facebook', [AuthController::class, 'facebookRedirect'])->name('auth.facebook');
+
+    // Facebook OAuth — separate routes for login vs register intent
+    Route::get('/auth/facebook',          [AuthController::class, 'facebookRedirect'])->name('auth.facebook');
+    Route::get('/auth/facebook/register', [AuthController::class, 'facebookRegisterRedirect'])->name('auth.facebook.register');
     Route::get('/auth/facebook/callback', [AuthController::class, 'facebookCallback']);
+
     Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('password.request');
 });
 
@@ -51,7 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/{conversation}/messages',       [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/{conversation}/typing',        [ChatController::class, 'typing'])->name('chat.typing');
     Route::post('/chat/start',                        [ChatController::class, 'startOrOpen'])->name('chat.start');
-    Route::post('/chat/{conversation}/signal',        [ChatController::class, 'signal'])->name('chat.signal'); // WebRTC
+    Route::post('/chat/{conversation}/signal',        [ChatController::class, 'signal'])->name('chat.signal');
 
     // Favorites
     Route::get('/favorites',              [FavoritesController::class, 'index'])->name('favorites');

@@ -17,15 +17,15 @@
 
     .notif-item { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; cursor: pointer; transition: box-shadow 0.2s; position: relative; }
     .notif-item:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
-    .notif-item.unread { border-left: 3px solid var(--teal); background: #f0fdfb; }
+    .notif-item.unread { border-left: 3px solid var(--teal); background: color-mix(in srgb, var(--teal) 8%, var(--card)); }
     .notif-item.unread::after { content: ''; position: absolute; top: 14px; right: 14px; width: 8px; height: 8px; background: var(--teal); border-radius: 50%; }
 
     .notif-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
-    .notif-icon.booking { background: #eff6ff; color: var(--blue-accent); }
-    .notif-icon.payment { background: #f0fdf4; color: var(--green); }
-    .notif-icon.message { background: #f5f3ff; color: var(--purple); }
-    .notif-icon.reminder { background: #fff7ed; color: var(--orange); }
-    .notif-icon.system { background: #f1f5f9; color: var(--text-muted); }
+    .notif-icon.booking { background: color-mix(in srgb, var(--blue-accent) 12%, var(--card)); color: var(--blue-accent); }
+    .notif-icon.payment { background: color-mix(in srgb, var(--green) 12%, var(--card)); color: var(--green); }
+    .notif-icon.message { background: color-mix(in srgb, var(--purple) 12%, var(--card)); color: var(--purple); }
+    .notif-icon.reminder { background: color-mix(in srgb, var(--orange) 12%, var(--card)); color: var(--orange); }
+    .notif-icon.system { background: color-mix(in srgb, var(--text-muted) 12%, var(--card)); color: var(--text-muted); }
 
     .notif-body { flex: 1; }
     .notif-title { font-size: 0.875rem; font-weight: 700; margin-bottom: 3px; }

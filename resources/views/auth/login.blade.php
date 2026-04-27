@@ -379,18 +379,21 @@
             <button class="auth-tab {{ old('_form') == 'register' ? 'active' : '' }}" id="tab-btn-register" onclick="switchTab('register', this)">Register</button>
         </div>
 
-        <!-- ✅ CANCELLED / INFO MESSAGE -->
+        {{-- CANCELLED / INFO MESSAGE --}}
         @if(session('social_cancelled'))
             <div class="info-msg">
                 <i class="fas fa-info-circle"></i> {{ session('social_cancelled') }}
             </div>
         @endif
 
-        <!-- LOGIN PANEL -->
+        {{-- ======================================================= --}}
+        {{-- LOGIN PANEL                                              --}}
+        {{-- ======================================================= --}}
         <div class="tab-panel {{ old('_form', 'login') != 'register' ? 'active' : '' }}" id="tab-login">
             <form method="POST" action="{{ route('login') }}">
                 @csrf
                 <input type="hidden" name="_form" value="login">
+
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
                     <div class="input-wrap">
@@ -401,6 +404,7 @@
                             value="{{ old('email') }}">
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">Password</label>
                     <div class="input-wrap">
@@ -411,16 +415,19 @@
                     </div>
                     <div class="forgot-link"><a href="{{ route('password.request') }}">Forgot password?</a></div>
                 </div>
+
                 @if($errors->any() && old('_form') != 'register')
                     <div class="error-msg">
                         <i class="fas fa-exclamation-circle"></i> {{ $errors->first() }}
                     </div>
                 @endif
+
                 <button type="submit" class="btn-submit">Sign In to BoardEase</button>
             </form>
 
             <div class="divider">or</div>
 
+            {{-- Google Login --}}
             <a href="{{ route('auth.google') }}" class="btn-google">
                 <svg width="18" height="18" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -431,6 +438,7 @@
                 Continue with Google
             </a>
 
+            {{-- Facebook Login — uses LOGIN intent --}}
             <a href="{{ route('auth.facebook') }}" class="btn-facebook">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                 Continue with Facebook
@@ -439,11 +447,14 @@
             <div class="auth-footer">No account? <a href="#" onclick="switchTab('register', document.getElementById('tab-btn-register'))">Register Here</a></div>
         </div>
 
-        <!-- REGISTER PANEL -->
+        {{-- ======================================================= --}}
+        {{-- REGISTER PANEL                                           --}}
+        {{-- ======================================================= --}}
         <div class="tab-panel {{ old('_form') == 'register' ? 'active' : '' }}" id="tab-register">
             <form method="POST" action="{{ route('register') }}">
                 @csrf
                 <input type="hidden" name="_form" value="register">
+
                 <div class="form-group">
                     <label class="form-label">Full Name</label>
                     <div class="input-wrap">
@@ -454,6 +465,7 @@
                             value="{{ old('name') }}">
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
                     <div class="input-wrap">
@@ -464,6 +476,7 @@
                             value="{{ old('email') }}">
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">Password</label>
                     <div class="input-wrap">
@@ -473,6 +486,7 @@
                             placeholder="Create a password" required>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">I am a...</label>
                     <div class="role-select">
@@ -489,16 +503,19 @@
                     </div>
                     <input type="hidden" name="role" id="roleInput" value="tenant">
                 </div>
+
                 @if($errors->any() && old('_form') == 'register')
                     <div class="error-msg">
                         <i class="fas fa-exclamation-circle"></i> {{ $errors->first() }}
                     </div>
                 @endif
+
                 <button type="submit" class="btn-submit">Create My Account</button>
             </form>
 
             <div class="divider">or</div>
 
+            {{-- Google Register --}}
             <a href="{{ route('auth.google') }}" class="btn-google">
                 <svg width="18" height="18" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -509,7 +526,8 @@
                 Register with Google
             </a>
 
-            <a href="{{ route('auth.facebook') }}" class="btn-facebook">
+            {{-- ✅ Facebook Register — uses REGISTER intent (FIXED) --}}
+            <a href="{{ route('auth.facebook.register') }}" class="btn-facebook">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                 Register with Facebook
             </a>
