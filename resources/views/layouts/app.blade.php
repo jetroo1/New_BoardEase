@@ -133,7 +133,6 @@
             transition: background 0.2s, border-color 0.2s;
         }
 
-        /* ── Smart Search ── */
         .search-bar { flex: 1; max-width: 420px; position: relative; }
         .search-bar input {
             width: 100%;
@@ -211,7 +210,6 @@
             text-align: center;
         }
 
-        /* ── rest of layout ── */
         .topbar-right { display: flex; align-items: center; gap: 14px; margin-left: auto; }
 
         .icon-btn {
@@ -283,6 +281,174 @@
         .dropdown-menu-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 0.875rem; font-weight: 500; color: var(--text); text-decoration: none; transition: background 0.2s; }
         .dropdown-menu-item:hover { background: rgba(0,0,0,0.05); }
         .dropdown-menu-divider { height: 1px; background: var(--border); }
+
+        /* ── PAGE TRANSITION OVERLAY ── */
+        #page-transition-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--navy);
+            z-index: 99999;
+            pointer-events: none;
+            transform: translateX(-100%);
+        }
+
+        /* ── SIDEBAR ENTRANCE ── */
+        .sidebar {
+            animation: sidebarSlideIn 0.3s ease both;
+        }
+        @keyframes sidebarSlideIn {
+            from { transform: translateX(-12px); opacity: 0; }
+            to   { transform: translateX(0);     opacity: 1; }
+        }
+
+        /* ── SIDEBAR LOGO POP ── */
+        .sidebar-logo-icon {
+            animation: logoPop 0.3s ease 0.15s both;
+        }
+        @keyframes logoPop {
+            from { transform: scale(0.85); opacity: 0; }
+            to   { transform: scale(1);    opacity: 1; }
+        }
+
+        /* ── NAV ITEMS STAGGER ── */
+        .nav-item {
+            opacity: 0;
+            animation: navFadeIn 0.25s ease forwards;
+        }
+        .nav-item:nth-child(1) { animation-delay: 0.10s; }
+        .nav-item:nth-child(2) { animation-delay: 0.13s; }
+        .nav-item:nth-child(3) { animation-delay: 0.16s; }
+        .nav-item:nth-child(4) { animation-delay: 0.19s; }
+        .nav-item:nth-child(5) { animation-delay: 0.22s; }
+        .nav-item:nth-child(6) { animation-delay: 0.25s; }
+        .nav-item:nth-child(7) { animation-delay: 0.28s; }
+        .nav-item:nth-child(8) { animation-delay: 0.31s; }
+        @keyframes navFadeIn {
+            from { opacity: 0; transform: translateX(-6px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── NAV ITEM ACTIVE INDICATOR ── */
+        .nav-item.active {
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            left: 0; top: 20%; bottom: 20%;
+            width: 3px;
+            background: var(--teal);
+            border-radius: 0 3px 3px 0;
+            animation: activeBar 0.2s ease 0.35s both;
+        }
+        @keyframes activeBar {
+            from { transform: scaleY(0); }
+            to   { transform: scaleY(1); }
+        }
+
+        /* ── TOPBAR DROP IN ── */
+        .topbar {
+            animation: topbarDrop 0.3s ease 0.05s both;
+        }
+        @keyframes topbarDrop {
+            from { transform: translateY(-8px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        /* ── TOPBAR ICON BUTTONS ── */
+        .icon-btn {
+            transition: all 0.18s ease !important;
+        }
+        .icon-btn:hover {
+            transform: scale(1.08);
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+
+        /* ── PAGE CONTENT FADE + RISE ── */
+        .page-content {
+            animation: pageRise 0.35s ease 0.08s both;
+        }
+        @keyframes pageRise {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── CARD HOVER LIFT ── */
+        .card {
+            transition: transform 0.18s ease,
+                        box-shadow 0.18s ease,
+                        background 0.2s, border-color 0.2s !important;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        /* ── BUTTON PRESS FEEDBACK ── */
+        .btn {
+            transition: all 0.15s ease !important;
+        }
+        .btn:hover  { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
+        .btn:active { transform: scale(0.97); }
+
+        /* ── NOTIFICATION BADGE PULSE ── */
+        .notif-badge {
+            animation: badgePulse 2.5s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+            50%       { box-shadow: 0 0 0 4px rgba(239,68,68,0); }
+        }
+
+        /* ── DROPDOWN ANIMATE ── */
+        #profileMenu[style*="block"],
+        #sidebarMenu[style*="block"] {
+            animation: dropdownPop 0.15s ease;
+        }
+        @keyframes dropdownPop {
+            from { opacity: 0; transform: translateY(-5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── SEARCH SUGGESTIONS ANIMATE ── */
+        .search-suggestions.show {
+            animation: suggestionsDrop 0.15s ease;
+        }
+        @keyframes suggestionsDrop {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── HELP MODAL ANIMATE ── */
+        #helpModal > div {
+            animation: modalPop 0.2s ease;
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+            to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* ── SIDEBAR USER AVATAR ON HOVER ── */
+        .sidebar-user:hover img,
+        .topbar-profile:hover img {
+            animation: avatarWobble 0.3s ease;
+        }
+        @keyframes avatarWobble {
+            0%,100% { transform: rotate(0deg); }
+            25%     { transform: rotate(-3deg); }
+            75%     { transform: rotate(3deg); }
+        }
+
+        /* ── PAGE EXIT ANIMATION ── */
+        .page-exit {
+            animation: pageLeave 0.2s ease forwards !important;
+        }
+        @keyframes pageLeave {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(-6px); }
+        }
     </style>
 
     @stack('styles')
@@ -306,7 +472,7 @@
         <a href="{{ route('search') }}" class="nav-item {{ request()->routeIs('search') ? 'active' : '' }}">
             <i class="fas fa-search"></i> Search
         </a>
-        <a href="{{ route('bookings') }}" class="nav-item {{ request()->routeIs('bookings') ? 'active' : '' }}">
+        <a href="{{ route('bookings.index') }}" class="nav-item {{ request()->routeIs('bookings.index') ? 'active' : '' }}">
             <i class="fas fa-calendar-check"></i> My Bookings
         </a>
         <a href="{{ route('favorites') }}" class="nav-item {{ request()->routeIs('favorites') ? 'active' : '' }}">
@@ -532,6 +698,7 @@ searchInput.addEventListener('keydown', function(e) {
 </script>
 
 @stack('scripts')
+
 <!-- Help Modal -->
 <div id="helpModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);" onclick="if(event.target===this)closeHelp()">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:20px;width:620px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
@@ -548,7 +715,6 @@ searchInput.addEventListener('keydown', function(e) {
         <!-- Steps -->
         <div style="padding:24px 28px;display:flex;flex-direction:column;gap:20px;">
 
-            <!-- Step 1 -->
             <div style="display:flex;gap:16px;align-items:flex-start;">
                 <div style="width:42px;height:42px;background:#eff6ff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🔍</div>
                 <div>
@@ -557,7 +723,6 @@ searchInput.addEventListener('keydown', function(e) {
                 </div>
             </div>
 
-            <!-- Step 2 -->
             <div style="display:flex;gap:16px;align-items:flex-start;">
                 <div style="width:42px;height:42px;background:#f0fdfb;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🏠</div>
                 <div>
@@ -566,7 +731,6 @@ searchInput.addEventListener('keydown', function(e) {
                 </div>
             </div>
 
-            <!-- Step 3 -->
             <div style="display:flex;gap:16px;align-items:flex-start;">
                 <div style="width:42px;height:42px;background:#fff7ed;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">📅</div>
                 <div>
@@ -575,7 +739,6 @@ searchInput.addEventListener('keydown', function(e) {
                 </div>
             </div>
 
-            <!-- Step 4 -->
             <div style="display:flex;gap:16px;align-items:flex-start;">
                 <div style="width:42px;height:42px;background:#dcfce7;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">✅</div>
                 <div>
@@ -584,7 +747,6 @@ searchInput.addEventListener('keydown', function(e) {
                 </div>
             </div>
 
-            <!-- Step 5 -->
             <div style="display:flex;gap:16px;align-items:flex-start;">
                 <div style="width:42px;height:42px;background:#fef9c3;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">❤️</div>
                 <div>
@@ -593,7 +755,6 @@ searchInput.addEventListener('keydown', function(e) {
                 </div>
             </div>
 
-            <!-- Step 6 -->
             <div style="display:flex;gap:16px;align-items:flex-start;">
                 <div style="width:42px;height:42px;background:#f5f3ff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">⭐</div>
                 <div>
@@ -602,7 +763,6 @@ searchInput.addEventListener('keydown', function(e) {
                 </div>
             </div>
 
-            <!-- Step 7 -->
             <div style="display:flex;gap:16px;align-items:flex-start;">
                 <div style="width:42px;height:42px;background:#fce7f3;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">💬</div>
                 <div>
@@ -611,7 +771,6 @@ searchInput.addEventListener('keydown', function(e) {
                 </div>
             </div>
 
-            <!-- Quick Tips -->
             <div style="background:var(--bg);border-radius:14px;padding:16px 18px;margin-top:4px;">
                 <div style="font-weight:700;font-size:0.875rem;margin-bottom:10px;">💡 Quick Tips</div>
                 <div style="display:flex;flex-direction:column;gap:6px;font-size:0.82rem;color:var(--text-muted);">
@@ -643,6 +802,45 @@ function closeHelp() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeHelp();
 });
+</script>
+
+<!-- ── PAGE TRANSITION OVERLAY ── -->
+<div id="page-transition-overlay"></div>
+
+<script>
+(function() {
+    var overlay = document.getElementById('page-transition-overlay');
+
+    // Slide overlay OUT on page load (reveal)
+    overlay.style.transition = 'none';
+    overlay.style.transform = 'translateX(0%)';
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            overlay.style.transition = 'transform 0.3s ease';
+            overlay.style.transform = 'translateX(100%)';
+        });
+    });
+
+    // Intercept nav link clicks → slide overlay IN, then navigate
+    document.querySelectorAll('a.nav-item, a.btn-add-property').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            var href = this.getAttribute('href');
+            if (!href || href === '#' || href.startsWith('javascript')) return;
+            e.preventDefault();
+            var content = document.querySelector('.page-content');
+            if (content) content.classList.add('page-exit');
+            overlay.style.transition = 'none';
+            overlay.style.transform = 'translateX(-100%)';
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    overlay.style.transition = 'transform 0.25s ease';
+                    overlay.style.transform = 'translateX(0%)';
+                });
+            });
+            setTimeout(function() { window.location.href = href; }, 240);
+        });
+    });
+})();
 </script>
 </body>
 </html>

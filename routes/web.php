@@ -44,21 +44,23 @@ Route::middleware('auth')->group(function () {
     Route::delete('/properties/{id}',  [PropertyController::class, 'destroy'])->name('properties.destroy');
 
     // Bookings
-    Route::get('/bookings',                       [BookingController::class, 'index'])->name('bookings');
+    Route::get('/bookings',                       [BookingController::class, 'index'])->name('bookings.index');
     Route::post('/bookings',                      [BookingController::class, 'store'])->name('bookings.store');
     Route::post('/bookings/{id}/approve',         [BookingController::class, 'approve'])->name('bookings.approve');
     Route::post('/bookings/{id}/reject',          [BookingController::class, 'reject'])->name('bookings.reject');
     Route::post('/bookings/{id}/cancel',          [BookingController::class, 'cancel'])->name('bookings.cancel');
 
     // Chat
+    // Chat
     Route::get('/chat',                               [ChatController::class, 'index'])->name('chat');
     Route::get('/chat/{conversation}',                [ChatController::class, 'show'])->name('chat.show');
     Route::post('/chat/{conversation}/messages',      [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::get('/chat/{conversation}/messages',       [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/{conversation}/typing',        [ChatController::class, 'typing'])->name('chat.typing');
+    Route::post('/chat/{conversation}/seen',          [ChatController::class, 'markSeen'])->name('chat.seen');
+    Route::post('/chat/heartbeat',                    [ChatController::class, 'heartbeat'])->name('chat.heartbeat');
     Route::post('/chat/start',                        [ChatController::class, 'startOrOpen'])->name('chat.start');
     Route::post('/chat/{conversation}/signal',        [ChatController::class, 'signal'])->name('chat.signal');
-
     // Favorites
     Route::get('/favorites',              [FavoritesController::class, 'index'])->name('favorites');
     Route::post('/favorites/{id}/toggle', [FavoritesController::class, 'toggle'])->name('favorites.toggle');

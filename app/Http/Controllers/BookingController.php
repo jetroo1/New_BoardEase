@@ -9,15 +9,18 @@ use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
+    // ← __construct() REMOVED (not supported in Laravel 11+/13)
+
     public function index()
     {
-        $bookings = Booking::with('property')
+        $allBookings = Booking::with('property')
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
 
-        $activeCount = $bookings->where('status', 'confirmed')->count();
-        $pastCount   = $bookings->where('status', 'completed')->count();
+        $bookings    = $allBookings;
+        $activeCount = $allBookings->filter(fn($b) => $b->isActiveStay())->count();
+        $pastCount   = $allBookings->where('status', 'completed')->count();
 
         return view('bookings.index', compact('bookings', 'activeCount', 'pastCount'));
     }
@@ -41,7 +44,8 @@ class BookingController extends Controller
             'status'      => 'pending',
         ]);
 
-        return redirect()->route('bookings')->with('success', 'Booking submitted! Admin will contact you within 24 hours.');
+        return redirect()->route('bookings.index')
+            ->with('success', 'Booking submitted! Admin will contact you within 24 hours.');
     }
 
     public function approve($id)
@@ -61,7 +65,15 @@ class BookingController extends Controller
     public function cancel($id)
     {
         $booking = Booking::findOrFail($id);
-        if ($booking->user_id !== Auth::id()) abort(403);
+
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (!in_array($booking->status, ['pending', 'confirmed'])) {
+            return back()->with('error', 'This booking cannot be cancelled.');
+        }
+
         $booking->update(['status' => 'cancelled']);
         return back()->with('success', 'Booking cancelled.');
     }

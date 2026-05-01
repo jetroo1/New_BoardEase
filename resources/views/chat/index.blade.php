@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Messages & Calls')
+@section('title', 'Messages')
 @section('search-placeholder', 'Search conversations...')
 
 @push('styles')
 <style>
     .page-content { padding: 0 !important; height: calc(100vh - 64px); display: flex; overflow: hidden; }
-    .chat-layout { display: flex; width: 100%; height: 100%; overflow: hidden; }
+    .chat-layout  { display: flex; width: 100%; height: 100%; overflow: hidden; }
 
     /* ── Conversations Panel ── */
     .conversations-panel { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--card); }
@@ -18,69 +18,87 @@
     .conv-search i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.78rem; }
     .conv-list { flex: 1; overflow-y: auto; padding: 8px; }
     .conv-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; cursor: pointer; transition: background 0.15s; position: relative; }
-    .conv-item:hover { background: var(--bg); }
+    .conv-item:hover  { background: var(--bg); }
     .conv-item.active { background: color-mix(in srgb, var(--blue-accent) 10%, var(--card)); }
     .conv-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: #fff; }
-    .online-dot { position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; background: var(--green); border-radius: 50%; border: 2px solid var(--card); }
-    .conv-info { flex: 1; overflow: hidden; }
-    .conv-name { font-size: 0.875rem; font-weight: 700; margin-bottom: 2px; }
+    .online-dot  { position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; background: var(--green); border-radius: 50%; border: 2px solid var(--card); }
+    .offline-dot { position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; background: var(--text-muted); border-radius: 50%; border: 2px solid var(--card); }
+    .conv-info    { flex: 1; overflow: hidden; }
+    .conv-name    { font-size: 0.875rem; font-weight: 700; margin-bottom: 2px; }
     .conv-preview { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .conv-meta { text-align: right; flex-shrink: 0; }
-    .conv-time { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; }
+    .conv-meta    { text-align: right; flex-shrink: 0; }
+    .conv-time    { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; }
     .unread-badge { background: var(--teal); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.68rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-left: auto; }
 
     /* ── Chat Window ── */
-    .chat-window { flex: 1; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
-    .chat-topbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
-    .chat-peer { display: flex; align-items: center; gap: 12px; }
-    .chat-peer-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; }
-    .chat-peer-name { font-size: 0.95rem; font-weight: 700; }
-    .chat-peer-status { font-size: 0.75rem; color: var(--green); display: flex; align-items: center; gap: 4px; }
-    .chat-actions { display: flex; gap: 8px; }
-    .call-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .call-btn.voice { background: color-mix(in srgb, var(--green) 12%, var(--card)); color: var(--green); }
-    .call-btn.voice:hover { background: var(--green); color: #fff; }
-    .call-btn.video { background: color-mix(in srgb, var(--blue-accent) 12%, var(--card)); color: var(--blue-accent); }
-    .call-btn.video:hover { background: var(--blue-accent); color: #fff; }
-    .call-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .chat-window  { flex: 1; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
+    .chat-topbar  { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .chat-peer    { display: flex; align-items: center; gap: 12px; }
+    .chat-peer-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; position: relative; }
+    .chat-peer-name   { font-size: 0.95rem; font-weight: 700; }
+    .chat-peer-status { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 1px; }
+    .chat-peer-status.is-online { color: var(--green); }
+    .status-dot   { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+    /* ── Load More ── */
+    .load-more-wrap { text-align: center; padding: 10px 0 4px; }
+    .load-more-btn  { background: var(--bg); border: 1.5px solid var(--border); color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
+    .load-more-btn:hover { border-color: var(--teal); color: var(--teal); }
 
     /* ── Messages ── */
-    .messages-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .messages-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
     .msg-day-divider { display: flex; align-items: center; gap: 12px; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
     .msg-day-divider::before, .msg-day-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    .msg-group { display: flex; gap: 10px; max-width: 70%; }
+    .msg-group      { display: flex; gap: 10px; max-width: 70%; }
     .msg-group.sent { margin-left: auto; flex-direction: row-reverse; }
-    .msg-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; align-self: flex-end; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; }
-    .msg-bubbles { display: flex; flex-direction: column; gap: 3px; }
-    .msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 0.875rem; line-height: 1.5; max-width: 100%; word-wrap: break-word; }
+    .msg-avatar     { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; align-self: flex-end; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; }
+    .msg-bubbles    { display: flex; flex-direction: column; gap: 3px; }
+    .msg-bubble     { padding: 10px 14px; border-radius: 14px; font-size: 0.875rem; line-height: 1.5; max-width: 100%; word-wrap: break-word; }
     .msg-group:not(.sent) .msg-bubble { background: var(--card); color: var(--text); border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-    .msg-group.sent .msg-bubble { background: var(--navy); color: #fff; border-bottom-right-radius: 4px; }
-    .msg-time { font-size: 0.68rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+    .msg-group.sent .msg-bubble       { background: var(--navy); color: #fff; border-bottom-right-radius: 4px; }
+
+    /* Image messages */
+    .msg-image { max-width: 220px; border-radius: 10px; display: block; cursor: pointer; transition: opacity 0.2s; }
+    .msg-image:hover { opacity: 0.88; }
+    .msg-group.sent  .msg-image { border-bottom-right-radius: 4px; }
+    .msg-group:not(.sent) .msg-image { border-bottom-left-radius: 4px; }
+
+    /* Timestamp + seen receipt */
+    .msg-time   { font-size: 0.68rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
     .msg-group.sent .msg-time { justify-content: flex-end; }
-    .msg-read { color: var(--teal); }
+    /* Grey ✓✓ = delivered, Teal ✓✓ = seen */
+    .msg-tick         { font-size: 0.72rem; color: var(--text-muted); }
+    .msg-tick.seen    { color: var(--teal); }
 
     /* ── Typing ── */
     .typing-indicator { display: flex; gap: 10px; max-width: 70%; align-items: flex-end; }
     .typing-dots { background: var(--card); padding: 12px 16px; border-radius: 14px; border-bottom-left-radius: 4px; display: flex; gap: 4px; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-    .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: typingBounce 1.2s infinite ease-in-out; }
+    .typing-dot  { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: typingBounce 1.2s infinite ease-in-out; }
     .typing-dot:nth-child(2) { animation-delay: 0.2s; }
     .typing-dot:nth-child(3) { animation-delay: 0.4s; }
     @keyframes typingBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
 
-    /* ── Input ── */
+    /* ── Input area ── */
     .chat-input-area { background: var(--card); border-top: 1px solid var(--border); padding: 14px 20px; }
     .input-toolbar { display: flex; gap: 6px; margin-bottom: 10px; }
-    .toolbar-btn { width: 32px; height: 32px; border: none; border-radius: 7px; background: var(--bg); color: var(--text-muted); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+    .toolbar-btn   { width: 32px; height: 32px; border: none; border-radius: 7px; background: var(--bg); color: var(--text-muted); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
     .toolbar-btn:hover { background: var(--border); color: var(--text); }
-    .input-row { display: flex; gap: 10px; align-items: flex-end; }
+    .input-row     { display: flex; gap: 10px; align-items: flex-end; }
     .msg-input-wrap { flex: 1; position: relative; }
-    .msg-input { width: 100%; min-height: 44px; max-height: 120px; padding: 11px 44px 11px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; outline: none; resize: none; background: var(--bg); color: var(--text); transition: border-color 0.2s; line-height: 1.4; }
+    .msg-input  { width: 100%; min-height: 44px; max-height: 120px; padding: 11px 44px 11px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; outline: none; resize: none; background: var(--bg); color: var(--text); transition: border-color 0.2s; line-height: 1.4; }
     .msg-input:focus { border-color: var(--teal); background: var(--card); }
-    .emoji-btn { position: absolute; right: 12px; bottom: 10px; background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-muted); transition: transform 0.2s; }
+    .emoji-btn  { position: absolute; right: 12px; bottom: 10px; background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-muted); transition: transform 0.2s; }
     .emoji-btn:hover { transform: scale(1.2); }
-    .send-btn { width: 44px; height: 44px; background: var(--navy); color: #fff; border: none; border-radius: 12px; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .send-btn:hover { background: var(--teal); }
+    .send-btn   { width: 44px; height: 44px; background: var(--navy); color: #fff; border: none; border-radius: 12px; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .send-btn:hover  { background: var(--teal); }
     .send-btn:active { transform: scale(0.95); }
+
+    /* Image preview strip (shown after picking image) */
+    .img-preview-strip { display: none; align-items: center; gap: 8px; margin-bottom: 8px; padding: 8px 10px; background: var(--bg); border-radius: 8px; border: 1.5px dashed var(--border); }
+    .img-preview-strip.show { display: flex; }
+    .img-preview-strip img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; }
+    .img-preview-strip span { font-size: 0.78rem; color: var(--text-muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .img-preview-strip button { background: none; border: none; color: var(--red); cursor: pointer; font-size: 1rem; }
 
     /* ── Empty state ── */
     .chat-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); gap: 12px; }
@@ -95,58 +113,30 @@
     .user-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; cursor: pointer; transition: background 0.15s; }
     .user-item:hover { background: var(--bg); }
 
-    /* ── Call Modal ── */
-    .call-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-    .call-modal.active { display: flex; }
-
-    /* Video streams */
-    .call-video-wrap { position: relative; width: 100%; max-width: 780px; }
-    .video-remote { width: 100%; max-height: 460px; background: #0a0f1e; border-radius: 20px; object-fit: cover; display: block; }
-    .video-local  { position: absolute; bottom: 16px; right: 16px; width: 140px; height: 100px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(255,255,255,0.3); background: #111827; }
-    .video-local.hidden  { display: none; }
-
-    /* Voice-only card (shown when no video) */
-    .call-card { background: var(--navy); border-radius: 24px; padding: 40px; text-align: center; width: 320px; animation: callSlideIn 0.3s ease; }
-    @keyframes callSlideIn { from{transform:translateY(20px) scale(0.95);opacity:0} to{transform:translateY(0) scale(1);opacity:1} }
-    .call-avatar { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; color: #fff; position: relative; }
-    .call-avatar::before { content:''; position:absolute; inset:-8px; border:2px solid rgba(46,196,165,0.4); border-radius:50%; animation:callRing 1.5s infinite; }
-    .call-avatar::after  { content:''; position:absolute; inset:-16px; border:2px solid rgba(46,196,165,0.2); border-radius:50%; animation:callRing 1.5s infinite 0.5s; }
-    @keyframes callRing { 0%{transform:scale(1);opacity:1} 100%{transform:scale(1.3);opacity:0} }
-    .call-type   { font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-    .call-name   { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
-    .call-status { font-size: 0.82rem; color: rgba(255,255,255,0.5); margin-bottom: 32px; }
-    .call-timer  { font-size: 0.9rem; color: var(--teal); font-variant-numeric: tabular-nums; margin-top: 20px; font-weight: 700; }
-
-    /* Shared controls bar */
-    .call-controls { display: flex; justify-content: center; gap: 20px; margin-top: 24px; }
-    .call-ctrl { width: 54px; height: 54px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; }
-    .ctrl-mute    { background: rgba(255,255,255,0.1); color: #fff; }
-    .ctrl-mute:hover { background: rgba(255,255,255,0.2); }
-    .ctrl-cam     { background: rgba(255,255,255,0.1); color: #fff; }
-    .ctrl-cam:hover { background: rgba(255,255,255,0.2); }
-    .ctrl-end     { background: var(--red); color: #fff; }
-    .ctrl-end:hover { background: #dc2626; }
-    .ctrl-speaker { background: rgba(255,255,255,0.1); color: #fff; }
-
-    /* Incoming call overlay */
-    .incoming-modal { display: none; position: fixed; bottom: 24px; right: 24px; background: var(--navy); border-radius: 18px; padding: 20px 24px; z-index: 1100; box-shadow: 0 8px 32px rgba(0,0,0,0.4); animation: slideUp 0.3s ease; min-width: 280px; }
-    .incoming-modal.active { display: block; }
-    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-    .incoming-title { font-size: 0.72rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .incoming-name  { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 16px; }
-    .incoming-btns  { display: flex; gap: 10px; }
-    .btn-accept { flex: 1; padding: 10px; border: none; border-radius: 10px; background: var(--green); color: #fff; font-family: 'DM Sans',sans-serif; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; }
-    .btn-accept:hover { background: #16a34a; }
-    .btn-decline { flex: 1; padding: 10px; border: none; border-radius: 10px; background: var(--red); color: #fff; font-family: 'DM Sans',sans-serif; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; }
-    .btn-decline:hover { background: #dc2626; }
+    /* ── Image Lightbox ── */
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; cursor: zoom-out; }
+    .lightbox.active { display: flex; }
+    .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 8px; object-fit: contain; }
 
     .realtime-badge { display: inline-flex; align-items: center; gap: 5px; background: color-mix(in srgb, var(--green) 12%, var(--card)); color: var(--green); font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--green) 30%, var(--card)); }
     .rt-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: rtPulse 1.5s infinite; }
     @keyframes rtPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    /* ── Modal input dark mode fix ── */
     .modal-card input { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
     .modal-card input:focus { border-color: var(--teal); outline: none; }
+
+    /* Hidden file input */
+    #imageFileInput { display: none; }
+    /* Avatar image support */
+    .conv-avatar img,
+    .chat-peer-avatar img,
+    .msg-avatar img,
+    .user-item .conv-avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
 </style>
 @endpush
 
@@ -160,14 +150,15 @@
                 <h3>Messages</h3>
                 <div style="display:flex;align-items:center;gap:8px;">
                     <span class="realtime-badge"><span class="rt-dot"></span> Live</span>
-                    <button onclick="openNewConvModal()" title="New conversation" style="background:var(--teal);color:#fff;border:none;border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;">
+                    <button onclick="openNewConvModal()" title="New conversation"
+                        style="background:var(--teal);color:#fff;border:none;border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
             </div>
             <div class="conv-search">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search conversations..." id="convSearch" oninput="searchConvs(this.value)">
+                <input type="text" placeholder="Search Contacts" id="convSearch" oninput="searchConvs(this.value)">
             </div>
         </div>
 
@@ -175,10 +166,22 @@
             @forelse($conversations as $conv)
             <div class="conv-item"
                  id="conv-item-{{ $conv['id'] }}"
-                 onclick="openConversation({{ $conv['id'] }}, '{{ addslashes($conv['other']->name) }}', '{{ $conv['initials'] }}', '{{ $conv['color'] }}')"
-                 data-name="{{ strtolower($conv['other']->name) }}">
-                <div class="conv-avatar" style="background:{{ $conv['color'] }}">
-                    {{ $conv['initials'] }}
+                 onclick="openConversation({{ $conv['id'] }}, '{{ addslashes($conv['other']->name) }}', '{{ $conv['initials'] }}', '{{ $conv['color'] }}', {{ $conv['is_online'] ? 'true' : 'false' }}, '{{ $conv['last_seen'] }}', '{{ $conv['avatar_url'] ?? '' }}')"
+                 data-name="{{ strtolower($conv['other']->name) }}"
+                 data-peer-id="{{ $conv['other']->id }}">
+                <div style="position:relative;flex-shrink:0;">
+    <div class="conv-avatar" style="background:{{ $conv['color'] }}">
+        @if($conv['avatar_url'])
+            <img src="{{ $conv['avatar_url'] }}" alt="{{ $conv['initials'] }}">
+        @else
+            {{ $conv['initials'] }}
+        @endif
+    </div>
+    @if($conv['is_online'])
+        <span class="online-dot"></span>
+    @else
+        <span class="offline-dot"></span>
+    @endif
                 </div>
                 <div class="conv-info">
                     <div class="conv-name">{{ $conv['other']->name }}</div>
@@ -186,11 +189,8 @@
                 </div>
                 <div class="conv-meta">
                     <div class="conv-time" id="conv-time-{{ $conv['id'] }}">{{ $conv['time'] }}</div>
-                    @if($conv['unread'] > 0)
-                    <div class="unread-badge" id="conv-unread-{{ $conv['id'] }}">{{ $conv['unread'] }}</div>
-                    @else
-                    <div class="unread-badge" id="conv-unread-{{ $conv['id'] }}" style="display:none">0</div>
-                    @endif
+                    <div class="unread-badge" id="conv-unread-{{ $conv['id'] }}"
+                        style="{{ $conv['unread'] > 0 ? '' : 'display:none' }}">{{ $conv['unread'] ?: '' }}</div>
                 </div>
             </div>
             @empty
@@ -203,53 +203,73 @@
 
     {{-- ── Chat Window ── --}}
     <div class="chat-window" id="chatWindow">
+
+        {{-- Empty State --}}
         <div class="chat-empty" id="chatEmpty">
             <i class="fas fa-comments"></i>
             <div style="font-size:0.9rem;font-weight:600;">Select a conversation</div>
             <div style="font-size:0.8rem;">or start a new one with the + button</div>
         </div>
 
+        {{-- Active Chat --}}
         <div id="chatActive" style="display:none;flex-direction:column;flex:1;overflow:hidden;width:100%;">
-            {{-- Topbar --}}
+
+            {{-- Chat Topbar --}}
             <div class="chat-topbar">
                 <div class="chat-peer">
-                    <div class="chat-peer-avatar" id="chatPeerAvatar" style="background:#2ec4a5">A</div>
+                    <div class="chat-peer-avatar" id="chatPeerAvatar" style="background:#2ec4a5; position:relative;">
+    <span id="chatPeerDot" class="offline-dot"></span>
+</div>
                     <div>
                         <div class="chat-peer-name" id="chatPeerName">—</div>
-                        <div class="chat-peer-status">
-                            <span style="width:6px;height:6px;background:currentColor;border-radius:50%;display:inline-block;"></span>
-                            Online
+                        <div class="chat-peer-status" id="chatPeerStatus">
+                            <span class="status-dot"></span>
+                            <span id="chatPeerStatusText">Offline</span>
                         </div>
                     </div>
                 </div>
-                <div class="chat-actions">
-                    <button class="call-btn voice" id="voiceCallBtn" onclick="startCall('voice')">
-                        <i class="fas fa-phone"></i> Voice Call
-                    </button>
-                    <button class="call-btn video" id="videoCallBtn" onclick="startCall('video')">
-                        <i class="fas fa-video"></i> Video Call
-                    </button>
-                </div>
+                {{-- No call buttons per your request --}}
             </div>
 
             {{-- Messages --}}
             <div class="messages-area" id="messagesArea">
+                {{-- Load More button (shown when older pages exist) --}}
+                <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+                    <button class="load-more-btn" onclick="loadOlderMessages()">
+                        <i class="fas fa-arrow-up" style="margin-right:5px;font-size:0.7rem;"></i>Load earlier messages
+                    </button>
+                </div>
+
+                {{-- Typing indicator --}}
                 <div class="typing-indicator" id="typingIndicator" style="display:none;">
-                    <div class="msg-avatar" id="typingAvatar" style="background:#2ec4a5">?</div>
+                    <div class="msg-avatar" id="typingAvatar" style="background:#2ec4a5"></div>
                     <div class="typing-dots">
-                        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
                     </div>
                 </div>
             </div>
 
-            {{-- Input --}}
+            {{-- Input Area --}}
             <div class="chat-input-area">
+                {{-- Image preview strip --}}
+                <div class="img-preview-strip" id="imgPreviewStrip">
+                    <img id="imgPreviewThumb" src="" alt="preview">
+                    <span id="imgPreviewName">image.jpg</span>
+                    <button onclick="clearImageSelection()" title="Remove image"><i class="fas fa-times"></i></button>
+                </div>
+
                 <div class="input-toolbar">
+                    {{-- Image upload button --}}
+                    <button class="toolbar-btn" title="Send image" onclick="document.getElementById('imageFileInput').click()">
+                        <i class="fas fa-image"></i>
+                    </button>
                     <button class="toolbar-btn" title="Attach file"><i class="fas fa-paperclip"></i></button>
                     <button class="toolbar-btn" title="Share property"><i class="fas fa-home"></i></button>
-                    <button class="toolbar-btn" title="Send image"><i class="fas fa-image"></i></button>
                     <button class="toolbar-btn" title="Location"><i class="fas fa-map-marker-alt"></i></button>
                 </div>
+
                 <div class="input-row">
                     <div class="msg-input-wrap">
                         <textarea class="msg-input" id="msgInput" placeholder="Type a message..." rows="1"
@@ -266,19 +286,29 @@
     </div>
 </div>
 
+{{-- Hidden file input --}}
+<input type="file" id="imageFileInput" accept="image/*" onchange="onImageSelected(this)">
+
 {{-- ── New Conversation Modal ── --}}
 <div class="modal-overlay" id="newConvModal">
     <div class="modal-card">
         <div style="display:flex;align-items:center;justify-content:space-between;">
             <h3>New Conversation</h3>
-            <button onclick="closeNewConvModal()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--text-muted);"><i class="fas fa-times"></i></button>
+            <button onclick="closeNewConvModal()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--text-muted);">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         <input type="text" id="userSearch" placeholder="Search users..." oninput="filterUsers(this.value)"
-            style="padding:9px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;width:100%;background:var(--bg);color:var(--text);">
+            style="padding:9px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;width:100%;">
         <div class="user-list" id="userList">
             @foreach($allUsers as $u)
             <div class="user-item" data-name="{{ strtolower($u['name']) }}" onclick="startConversation({{ $u['id'] }})">
-                <div class="conv-avatar" style="background:{{ $u['color'] }};width:36px;height:36px;font-size:0.8rem;">{{ $u['initials'] }}</div>
+                <div class="conv-avatar" style="background:{{ $u['color'] }};width:36px;height:36px;font-size:0.8rem;">
+    @if(!empty($u['avatar_url']))
+        <img src="{{ $u['avatar_url'] }}" alt="{{ $u['initials'] }}">
+    @else
+        {{ $u['initials'] }}
+    @endif</div>
                 <div>
                     <div style="font-size:0.875rem;font-weight:600;">{{ $u['name'] }}</div>
                     <div style="font-size:0.75rem;color:var(--text-muted);">{{ ucfirst($u['role']) }}</div>
@@ -289,54 +319,11 @@
     </div>
 </div>
 
-{{-- ── Active Call Modal ── --}}
-<div class="call-modal" id="callModal">
-    {{-- Voice card (shown for voice calls or while video is loading) --}}
-    <div class="call-card" id="callCard">
-        <div class="call-type"   id="callType">Voice Call</div>
-        <div class="call-avatar" id="callAvatar" style="background:#2ec4a5">A</div>
-        <div class="call-name"   id="callName">—</div>
-        <div class="call-status" id="callStatus">Calling...</div>
-        <div class="call-timer"  id="callTimer" style="display:none">00:00</div>
-        <div class="call-controls">
-            <button class="call-ctrl ctrl-mute"    id="muteBtn"    onclick="toggleMute()">   <i class="fas fa-microphone"  id="muteIcon"></i></button>
-            <button class="call-ctrl ctrl-end"                      onclick="endCall()">      <i class="fas fa-phone-slash"></i></button>
-            <button class="call-ctrl ctrl-speaker" id="speakerBtn" onclick="toggleSpeaker()"><i class="fas fa-volume-up"   id="speakerIcon"></i></button>
-        </div>
-    </div>
-
-    {{-- Video wrap (shown for video calls once connected) --}}
-    <div id="videoWrap" style="display:none;flex-direction:column;align-items:center;gap:16px;">
-        <div class="call-video-wrap">
-            <video id="remoteVideo" class="video-remote" autoplay playsinline></video>
-            <video id="localVideo"  class="video-local"  autoplay playsinline muted></video>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-            <span style="color:#fff;font-size:0.85rem;font-weight:600;" id="videoCallName">—</span>
-            <span style="color:var(--teal);font-size:0.85rem;font-weight:700;" id="videoCallTimer">00:00</span>
-        </div>
-        <div class="call-controls">
-            <button class="call-ctrl ctrl-mute" id="muteBtn2"    onclick="toggleMute()">   <i class="fas fa-microphone"  id="muteIcon2"></i></button>
-            <button class="call-ctrl ctrl-cam"  id="camBtn"      onclick="toggleCamera()"> <i class="fas fa-video"       id="camIcon"></i></button>
-            <button class="call-ctrl ctrl-end"                    onclick="endCall()">      <i class="fas fa-phone-slash"></i></button>
-        </div>
-    </div>
+{{-- ── Image Lightbox ── --}}
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <img id="lightboxImg" src="" alt="full image">
 </div>
 
-{{-- ── Incoming Call Toast ── --}}
-<div class="incoming-modal" id="incomingModal">
-    <div class="incoming-title" id="incomingType">Incoming Voice Call</div>
-    <div class="incoming-name"  id="incomingName">Someone</div>
-    <div class="incoming-btns">
-        <button class="btn-accept"  onclick="acceptCall()"><i class="fas fa-phone"></i> Accept</button>
-        <button class="btn-decline" onclick="declineCall()"><i class="fas fa-phone-slash"></i> Decline</button>
-    </div>
-</div>
-
-<audio id="ringtone" loop>
-    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA..." type="audio/wav">
-</audio>
-<audio id="remoteAudio" autoplay></audio>
 @endsection
 
 @push('scripts')
@@ -345,362 +332,171 @@ const CSRF     = document.querySelector('meta[name="csrf-token"]').content;
 const ME_ID    = {{ auth()->id() }};
 const ME_INIT  = '{{ $userInitials }}';
 const ME_COLOR = '{{ $userColor }}';
+const ME_AVATAR = @json(auth()->user()->avatar_url ?? '');
 
-// ── State ─────────────────────────────────────────────────────
-let currentConvId    = null;
-let currentPeerInit  = 'A';
-let currentPeerColor = '#2ec4a5';
-let typingTimeout    = null;
-let typingHideTimer  = null;
+// ── State ──────────────────────────────────────────────────────
+let currentPeerAvatar = null;    
+let currentConvId     = null;
+let currentPeerId     = null;
+let currentPeerInit   = 'A';
+let currentPeerColor  = '#2ec4a5';
+let typingTimeout     = null;
+let typingHideTimer   = null;
+let currentPage       = 1;
+let lastPage          = 1;
+let selectedImageFile = null;
+let heartbeatInterval = null;
 
-// ── WebRTC State ───────────────────────────────────────────────
-let peerConnection   = null;
-let localStream      = null;
-let callType         = null;
-let callInterval     = null;
-let callSeconds      = 0;
-let isMuted          = false;
-let isCamOff         = false;
-let isCaller         = false;
-let incomingOffer    = null;
-let incomingCallType = null;
-let incomingConvId   = null;
+function setAvatarEl(el, url, initials, color) {
+    if (!el) return;
+    el.style.background = color;
+    if (url) {
+        el.innerHTML = `<img src="${escHtml(url)}" alt="${escHtml(initials)}"
+                             style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">`;
+    } else {
+        el.innerHTML = escHtml(initials);
+    }
+}
 
-const ICE_SERVERS = {
-    iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'turn:openrelay.metered.ca:80',  username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    ]
-};
-
-// ── Init Echo ─────────────────────────────────────────────────
+// ── Init Echo ──────────────────────────────────────────────────
 function initEcho() {
     if (typeof window.Echo === 'undefined') { setTimeout(initEcho, 500); return; }
     try {
         window.Echo.private(`chat.${ME_ID}`)
+
+            // New message received
             .listen('.message.sent', (e) => {
                 if (e.conversation_id === currentConvId) {
-                    appendMessage({ content: e.content, time: e.time, initials: e.initials, color: e.color, sent: false });
+                    appendMessage({
+                        content:   e.content,
+                        image_url: e.image_url ?? null,
+                        avatar_url: e.avatar_url ?? null,
+                        time:      e.time,
+                        initials:  e.initials,
+                        color:     e.color,
+                        sent:      false,
+                        read:      false,
+                    });
                     hideTypingIndicator();
+
+                    // Mark as seen immediately since chat is open
+                    markConversationSeen(currentConvId);
                 }
-                updateSidebarPreview(e.conversation_id, e.content);
+                updateSidebarPreview(e.conversation_id, e.content || '📷 Image');
+                bumpUnreadBadge(e.conversation_id);
             })
+
+            // Someone is typing
             .listen('.user.typing', (e) => {
-                if (currentConvId) showTypingIndicator(e.name);
+                if (currentConvId) showTypingIndicator();
             })
-            .listen('.webrtc.signal', (e) => {
-                handleSignal(e);
+
+            // Sender sees their message was read (teal ticks)
+            .listen('.message.read', (e) => {
+                if (e.conversation_id === currentConvId) {
+                    markAllSentAsSeen();
+                }
+            })
+
+            // Online/offline status update
+            .listen('.user.status', (e) => {
+                updatePeerOnlineStatus(e.user_id, e.is_online, e.last_seen_text);
             });
+
     } catch (err) {
-        console.warn('Echo listener error:', err.message);
+        console.warn('Echo error:', err.message);
     }
 }
 
-// ── Send WebRTC signal ────────────────────────────────────────
-async function sendSignal(type, payload) {
-    if (!currentConvId) return;
-    try {
-        await fetch(`/chat/${currentConvId}/signal`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-            body:    JSON.stringify({ type, payload }),
-        });
-    } catch (err) {
-        console.warn('Signal send error:', err.message);
+// ── Heartbeat (keeps online status alive) ─────────────────────
+function startHeartbeat() {
+    stopHeartbeat();
+    // Ping immediately, then every 60 seconds
+    pingHeartbeat();
+    heartbeatInterval = setInterval(pingHeartbeat, 60000);
+}
+
+function stopHeartbeat() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+}
+
+function pingHeartbeat() {
+    fetch('/chat/heartbeat', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+    }).catch(() => {});
+}
+
+// ── Update peer online status in topbar ───────────────────────
+function updatePeerOnlineStatus(userId, isOnline, lastSeenText) {
+    if (userId !== currentPeerId) return;
+
+    const dot        = document.getElementById('chatPeerDot');
+    const statusEl   = document.getElementById('chatPeerStatus');
+    const statusText = document.getElementById('chatPeerStatusText');
+
+    if (dot) {
+        dot.className = isOnline ? 'online-dot' : 'offline-dot';
+    }
+    if (statusEl) {
+        statusEl.className = 'chat-peer-status' + (isOnline ? ' is-online' : '');
+    }
+    if (statusText) {
+        statusText.textContent = lastSeenText;
+    }
+
+    // Also update the conv list dot
+    const convItem = document.querySelector(`[data-peer-id="${userId}"]`);
+    if (convItem) {
+        const convDot = convItem.querySelector('.online-dot, .offline-dot');
+        if (convDot) convDot.className = isOnline ? 'online-dot' : 'offline-dot';
     }
 }
 
-// ── Handle incoming WebRTC signals ───────────────────────────
-async function handleSignal(e) {
-    const { type, payload, sender_id, sender_name } = e;
+// ── Mark all sent messages in view as seen (teal ticks) ───────
+function markAllSentAsSeen() {
+    document.querySelectorAll('.msg-tick').forEach(el => {
+        el.classList.add('seen');
+        el.title = 'Seen';
+    });
+}
 
-    if (type === 'offer') {
-        incomingOffer    = payload;
-        incomingCallType = payload.callType;
-        incomingConvId   = e.conversation_id ?? currentConvId;
-        showIncomingCall(sender_name, payload.callType);
-        return;
-    }
+// ── Mark conversation as seen (tell server + update badge) ────
+function markConversationSeen(convId) {
+    fetch(`/chat/${convId}/seen`, {
+        method:  'POST',
+        headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+    }).catch(() => {});
 
-    if (type === 'call-rejected') {
-        updateCallStatus('Call declined');
-        setTimeout(() => endCall(), 1500);
-        return;
-    }
+    // Hide unread badge in sidebar
+    const badge = document.getElementById(`conv-unread-${convId}`);
+    if (badge) badge.style.display = 'none';
+}
 
-    if (type === 'call-ended') {
-        cleanupCall();
-        return;
-    }
-
-    if (type === 'answer' && peerConnection) {
-        try {
-            if (peerConnection.signalingState !== 'have-local-offer') return;
-            await peerConnection.setRemoteDescription(new RTCSessionDescription({
-                type: payload.type,
-                sdp:  payload.sdp,
-            }));
-        } catch (err) {
-            console.error('setRemoteDescription (answer) failed:', err);
-        }
-        return;
-    }
-
-    if (type === 'ice-candidate' && peerConnection) {
-        try {
-            const candidate = payload.candidate ?? payload;
-            if (candidate && candidate.candidate !== undefined) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-            }
-        } catch (err) {
-            console.warn('ICE candidate error:', err);
-        }
-        return;
+// ── Bump unread badge for non-active conversations ─────────────
+function bumpUnreadBadge(convId) {
+    if (convId === currentConvId) return; // already open
+    const badge = document.getElementById(`conv-unread-${convId}`);
+    if (badge) {
+        const current = parseInt(badge.textContent) || 0;
+        badge.textContent = current + 1;
+        badge.style.display = 'flex';
     }
 }
 
-// ── Create PeerConnection ─────────────────────────────────────
-function createPeerConnection() {
-    const pc = new RTCPeerConnection(ICE_SERVERS);
-
-    pc.onicecandidate = (e) => {
-        if (e.candidate) {
-            sendSignal('ice-candidate', { candidate: e.candidate.toJSON() });
-        }
-    };
-
-    pc.ontrack = (e) => {
-        if (callType === 'video') {
-            document.getElementById('remoteVideo').srcObject = e.streams[0];
-        } else {
-            document.getElementById('remoteAudio').srcObject = e.streams[0];
-        }
-        onCallConnected();
-    };
-
-    pc.onconnectionstatechange = () => {
-        if (['disconnected','failed','closed'].includes(pc.connectionState)) {
-            cleanupCall();
-        }
-    };
-
-    return pc;
-}
-
-// ── Start Call (caller side) ──────────────────────────────────
-async function startCall(type) {
-    if (!currentConvId) return;
-    callType = type;
-    isCaller = true;
-
-    showCallModal(type, document.getElementById('chatPeerName').textContent,
-                        document.getElementById('chatPeerAvatar').textContent,
-                        document.getElementById('chatPeerAvatar').style.background);
-    updateCallStatus('Calling...');
-    disableCallButtons(true);
-
-    try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' });
-    } catch (err) {
-        updateCallStatus('Microphone/Camera access denied');
-        setTimeout(() => endCall(), 2000);
-        return;
-    }
-
-    if (type === 'video') {
-        document.getElementById('localVideo').srcObject = localStream;
-    }
-
-    peerConnection = createPeerConnection();
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    await sendSignal('offer', { sdp: offer.sdp, callType: type, type: offer.type });
-}
-
-// ── Accept incoming call ──────────────────────────────────────
-async function acceptCall() {
-    hideIncomingCall();
-
-    if (incomingConvId) currentConvId = incomingConvId;
-
-    callType = incomingCallType;
-    isCaller = false;
-
-    showCallModal(callType,
-        document.getElementById('incomingName').textContent,
-        document.getElementById('incomingName').textContent.charAt(0).toUpperCase(),
-        currentPeerColor
-    );
-    updateCallStatus('Connecting...');
-    disableCallButtons(true);
-
-    try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: callType === 'video' });
-    } catch (err) {
-        updateCallStatus('Microphone/Camera access denied');
-        setTimeout(() => endCall(), 2000);
-        return;
-    }
-
-    if (callType === 'video') {
-        document.getElementById('localVideo').srcObject = localStream;
-    }
-
-    peerConnection = createPeerConnection();
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-    try {
-        await peerConnection.setRemoteDescription(new RTCSessionDescription({
-            type: incomingOffer.type,
-            sdp:  incomingOffer.sdp,
-        }));
-    } catch (err) {
-        console.error('setRemoteDescription failed:', err);
-        updateCallStatus('Connection failed');
-        setTimeout(() => endCall(), 2000);
-        return;
-    }
-
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-    await sendSignal('answer', { sdp: answer.sdp, type: answer.type });
-}
-
-// ── Decline incoming call ─────────────────────────────────────
-async function declineCall() {
-    hideIncomingCall();
-    await sendSignal('call-rejected', { declined: true });
-}
-
-// ── Call connected ────────────────────────────────────────────
-function onCallConnected() {
-    updateCallStatus('Connected');
-    document.getElementById('callTimer').style.display = 'block';
-
-    if (callType === 'video') {
-        document.getElementById('callCard').style.display  = 'none';
-        document.getElementById('videoWrap').style.display = 'flex';
-        document.getElementById('videoCallName').textContent = document.getElementById('callName').textContent;
-    }
-
-    callSeconds = 0;
-    clearInterval(callInterval);
-    callInterval = setInterval(() => {
-        callSeconds++;
-        const t = formatTime(callSeconds);
-        document.getElementById('callTimer').textContent      = t;
-        document.getElementById('videoCallTimer').textContent = t;
-    }, 1000);
-}
-
-// ── End Call ──────────────────────────────────────────────────
-async function endCall() {
-    await sendSignal('call-ended', { ended: true });
-    cleanupCall();
-}
-
-function cleanupCall() {
-    clearInterval(callInterval);
-    callSeconds = 0;
-
-    if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-    if (peerConnection) { peerConnection.close(); peerConnection = null; }
-
-    const rv = document.getElementById('remoteVideo');
-    const lv = document.getElementById('localVideo');
-    const ra = document.getElementById('remoteAudio');
-    if (rv) rv.srcObject = null;
-    if (lv) lv.srcObject = null;
-    if (ra) ra.srcObject = null;
-
-    document.getElementById('callModal').classList.remove('active');
-    document.getElementById('callCard').style.display  = 'block';
-    document.getElementById('videoWrap').style.display = 'none';
-    document.getElementById('callTimer').style.display = 'none';
-
-    isMuted  = false;
-    isCamOff = false;
-    disableCallButtons(false);
-    resetMuteIcons();
-}
-
-// ── Toggle Mute ───────────────────────────────────────────────
-function toggleMute() {
-    isMuted = !isMuted;
-    if (localStream) { localStream.getAudioTracks().forEach(t => t.enabled = !isMuted); }
-    const cls = isMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
-    const bg  = isMuted ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)';
-    ['muteIcon','muteIcon2'].forEach(id => { const el = document.getElementById(id); if (el) el.className = cls; });
-    ['muteBtn','muteBtn2'].forEach(id => { const el = document.getElementById(id); if (el) el.style.background = bg; });
-}
-
-// ── Toggle Camera ─────────────────────────────────────────────
-function toggleCamera() {
-    isCamOff = !isCamOff;
-    if (localStream) { localStream.getVideoTracks().forEach(t => t.enabled = !isCamOff); }
-    const icon = document.getElementById('camIcon');
-    const btn  = document.getElementById('camBtn');
-    if (icon) icon.className = isCamOff ? 'fas fa-video-slash' : 'fas fa-video';
-    if (btn)  btn.style.background = isCamOff ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)';
-}
-
-function toggleSpeaker() {}
-
-// ── Show/Hide Call Modal ──────────────────────────────────────
-function showCallModal(type, name, initials, color) {
-    document.getElementById('callType').textContent        = type === 'video' ? '📹 Video Call' : '📞 Voice Call';
-    document.getElementById('callName').textContent        = name;
-    document.getElementById('callAvatar').textContent      = initials;
-    document.getElementById('callAvatar').style.background = color;
-    document.getElementById('callModal').classList.add('active');
-}
-
-function updateCallStatus(text) {
-    document.getElementById('callStatus').textContent = text;
-}
-
-// ── Incoming Call Toast ───────────────────────────────────────
-function showIncomingCall(name, type) {
-    document.getElementById('incomingType').textContent = type === 'video' ? '📹 Incoming Video Call' : '📞 Incoming Voice Call';
-    document.getElementById('incomingName').textContent = name;
-    document.getElementById('incomingModal').classList.add('active');
-}
-
-function hideIncomingCall() {
-    document.getElementById('incomingModal').classList.remove('active');
-}
-
-// ── Helpers ───────────────────────────────────────────────────
-function formatTime(s) {
-    const m = Math.floor(s / 60).toString().padStart(2, '0');
-    const sec = (s % 60).toString().padStart(2, '0');
-    return `${m}:${sec}`;
-}
-
-function disableCallButtons(disabled) {
-    document.getElementById('voiceCallBtn').disabled = disabled;
-    document.getElementById('videoCallBtn').disabled = disabled;
-}
-
-function resetMuteIcons() {
-    ['muteIcon','muteIcon2'].forEach(id => { const el = document.getElementById(id); if (el) el.className = 'fas fa-microphone'; });
-    ['muteBtn','muteBtn2'].forEach(id => { const el = document.getElementById(id); if (el) el.style.background = 'rgba(255,255,255,0.1)'; });
-}
-
-// ── Open Conversation ─────────────────────────────────────────
-async function openConversation(id, name, initials, color) {
+// ── Open Conversation ──────────────────────────────────────────
+async function openConversation(id, name, initials, color, isOnline, lastSeenText, peerAvatarUrl = null) {
     currentConvId    = id;
     currentPeerInit  = initials;
     currentPeerColor = color;
+    currentPeerAvatar = peerAvatarUrl;
+
+    // Find the peer's user id from the conv item data attribute
+    const convItem = document.getElementById(`conv-item-${id}`);
+    currentPeerId  = convItem ? parseInt(convItem.dataset.peerId) : null;
 
     document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
-    const item = document.getElementById(`conv-item-${id}`);
-    if (item) item.classList.add('active');
+    if (convItem) convItem.classList.add('active');
 
     document.getElementById('chatEmpty').style.display = 'none';
     const active = document.getElementById('chatActive');
@@ -709,98 +505,259 @@ async function openConversation(id, name, initials, color) {
     active.style.overflow = 'hidden';
     active.style.width    = '100%';
 
-    document.getElementById('chatPeerAvatar').textContent      = initials;
-    document.getElementById('chatPeerAvatar').style.background = color;
-    document.getElementById('chatPeerName').textContent        = name;
-    document.getElementById('typingAvatar').textContent        = initials;
-    document.getElementById('typingAvatar').style.background   = color;
+    // Set topbar peer info
+    const peerAvatarEl = document.getElementById('chatPeerAvatar');
+    const peerDot      = document.getElementById('chatPeerDot');
+    setAvatarEl(peerAvatarEl, peerAvatarUrl, initials, color);
+    peerAvatarEl.appendChild(peerDot); // re-attach dot after innerHTML wipe
+    document.getElementById('chatPeerName').textContent = name;
 
-    const badge = document.getElementById(`conv-unread-${id}`);
-    if (badge) badge.style.display = 'none';
+    // Set online status
+    const statusEl = document.getElementById('chatPeerStatus');
+    const statusTx = document.getElementById('chatPeerStatusText');
+    const dot      = document.getElementById('chatPeerDot');
+    if (dot)      dot.className      = isOnline ? 'online-dot' : 'offline-dot';
+    if (statusEl) statusEl.className = 'chat-peer-status' + (isOnline ? ' is-online' : '');
+    if (statusTx) statusTx.textContent = lastSeenText || (isOnline ? 'Online' : 'Offline');
 
-    await loadMessages(id);
+    // Reset pagination
+    currentPage = 1;
+    lastPage    = 1;
+
+    await loadMessages(id, 1);
 }
 
-// ── Load Messages ─────────────────────────────────────────────
-async function loadMessages(convId) {
+// ── Load Messages (with pagination) ───────────────────────────
+async function loadMessages(convId, page) {
     const area   = document.getElementById('messagesArea');
     const typing = document.getElementById('typingIndicator');
-    area.innerHTML = '';
-    area.appendChild(typing);
+    const lmWrap = document.getElementById('loadMoreWrap');
+
+    if (page === 1) {
+        // Fresh load — clear everything
+        area.innerHTML = '';
+        area.appendChild(lmWrap);
+        area.appendChild(typing);
+        delete area.dataset.lastMsgDate;
+    }
 
     try {
-        const res = await fetch(`/chat/${convId}/messages`, {
+        const res = await fetch(`/chat/${convId}/messages?page=${page}&per_page=30`, {
             headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
+        lastPage    = data.last_page ?? 1;
+        currentPage = data.current_page ?? 1;
+
+        // Show "Load earlier" if there are older pages
+        lmWrap.style.display = (lastPage > 1 && currentPage < lastPage) ? 'block' : 'none';
+
         if (!data.messages || data.messages.length === 0) {
+            if (page === 1) {
+                const div = document.createElement('div');
+                div.className   = 'msg-day-divider';
+                div.textContent = 'Start of conversation';
+                area.insertBefore(div, lmWrap.nextSibling);
+            }
+        } else {
+            // Preserve scroll position when prepending older messages
+            const prevHeight = area.scrollHeight;
+
+            data.messages.forEach(m => appendMessage({ ...m }, page > 1 ? 'prepend' : 'append'));
+
+            if (page > 1) {
+                area.scrollTop = area.scrollHeight - prevHeight;
+            }
+        }
+
+        if (page === 1) {
+            area.scrollTop = area.scrollHeight;
+        }
+
+        // Mark messages as seen
+        markConversationSeen(convId);
+
+    } catch (err) {
+        console.warn('Load messages error:', err.message);
+        if (page === 1) {
             const div = document.createElement('div');
             div.className   = 'msg-day-divider';
             div.textContent = 'Start of conversation';
-            area.insertBefore(div, typing);
-        } else {
-            data.messages.forEach(m => appendMessage({ ...m }));
+            area.insertBefore(div, lmWrap.nextSibling);
         }
-    } catch (err) {
-        console.warn('Load messages error:', err.message);
-        const div = document.createElement('div');
-        div.className   = 'msg-day-divider';
-        div.textContent = 'Start of conversation';
-        area.insertBefore(div, typing);
     }
-
-    area.scrollTop = area.scrollHeight;
 }
 
-// ── Send Message ──────────────────────────────────────────────
+// ── Load Older Messages (scroll up pagination) ─────────────────
+async function loadOlderMessages() {
+    if (currentPage >= lastPage) return;
+    await loadMessages(currentConvId, currentPage + 1);
+    currentPage++;
+}
+
+// ── Send Message (text or image) ──────────────────────────────
 async function sendMessage() {
     if (!currentConvId) return;
     const input = document.getElementById('msgInput');
     const text  = input.value.trim();
-    if (!text) return;
 
+    if (!text && !selectedImageFile) return;
+
+    // Build FormData so we can send both text and image
+    const formData = new FormData();
+    if (text)              formData.append('content', text);
+    if (selectedImageFile) formData.append('image', selectedImageFile);
+
+    // Optimistic UI
+    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    if (selectedImageFile) {
+        const localUrl = URL.createObjectURL(selectedImageFile);
+        appendMessage({ content: text, image_url: localUrl, time, sent: true, read: false });
+    } else {
+        appendMessage({ content: text, time, sent: true, read: false });
+    }
+
+    updateSidebarPreview(currentConvId, text || '📷 Image');
+
+    // Clear inputs
     input.value        = '';
     input.style.height = 'auto';
-
-    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    appendMessage({ content: text, time, sent: true });
-    updateSidebarPreview(currentConvId, text);
+    clearImageSelection();
 
     try {
         await fetch(`/chat/${currentConvId}/messages`, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-            body:    JSON.stringify({ content: text }),
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            // NOTE: no Content-Type header — browser sets it with boundary for FormData
+            body: formData,
         });
     } catch (err) {
         console.warn('Send error:', err.message);
     }
 }
 
-// ── Append Message ────────────────────────────────────────────
-function appendMessage({ content, time, initials, color, sent }) {
+// ── Append Message ─────────────────────────────────────────────
+function appendMessage({ content, image_url, avatar_url, time, created_at, initials, color, sent, read }, direction = 'append') {
     const area   = document.getElementById('messagesArea');
     const typing = document.getElementById('typingIndicator');
+    const lmWrap = document.getElementById('loadMoreWrap');
     const div    = document.createElement('div');
     div.className = `msg-group ${sent ? 'sent' : ''}`;
 
     const aColor = sent ? ME_COLOR : (color    || currentPeerColor);
     const aInit  = sent ? ME_INIT  : (initials || currentPeerInit);
 
-    div.innerHTML = `
-        <div class="msg-avatar" style="background:${aColor}">${escHtml(aInit)}</div>
-        <div class="msg-bubbles">
-            <div class="msg-bubble">${escHtml(content)}</div>
-            <div class="msg-time">${escHtml(time)}${sent ? ' <i class="fas fa-check-double msg-read"></i>' : ''}</div>
-        </div>`;
+    // Build bubble content: image, text, or both
+    let bubbleContent = '';
+    if (image_url) {
+        bubbleContent += `<img class="msg-image" src="${escHtml(image_url)}" alt="image" onclick="openLightbox('${escHtml(image_url)}')">`;
+    }
+    if (content) {
+        bubbleContent += `<div class="msg-bubble">${escHtml(content)}</div>`;
+    }
 
-    area.insertBefore(div, typing);
-    area.scrollTop = area.scrollHeight;
+    // Seen tick icon (only for sent messages)
+    const tickHtml = sent
+        ? `<i class="fas fa-check-double msg-tick${read ? ' seen' : ''}" title="${read ? 'Seen' : 'Delivered'}"></i>`
+        : '';
+
+    const avatarUrl = sent ? ME_AVATAR : (avatar_url ?? currentPeerAvatar ?? null);
+
+    div.innerHTML = `
+    <div class="msg-avatar" style="background:${aColor}"></div>
+    <div class="msg-bubbles">
+        ${bubbleContent}
+        <div class="msg-time">${escHtml(time)} ${tickHtml}</div>
+    </div>`;
+
+    setAvatarEl(div.querySelector('.msg-avatar'), avatarUrl, aInit, aColor);
+
+    if (created_at) {
+        const msgDateStr = new Date(created_at).toDateString();
+        if (direction === 'append') {
+            if (msgDateStr !== (area.dataset.lastMsgDate ?? '')) {
+                const divider = document.createElement('div');
+                divider.className   = 'msg-day-divider';
+                divider.textContent = getDateLabel(created_at);
+                area.insertBefore(divider, typing);
+                area.dataset.lastMsgDate = msgDateStr;
+            }
+        }
+        if (direction === 'prepend') {
+            const existingDividers = area.querySelectorAll('.msg-day-divider');
+            const firstDividerDate = existingDividers[0]?.dataset.dividerDate ?? '';
+            if (msgDateStr !== firstDividerDate) {
+                const divider = document.createElement('div');
+                divider.className           = 'msg-day-divider';
+                divider.dataset.dividerDate = msgDateStr;
+                divider.textContent         = getDateLabel(created_at);
+                area.insertBefore(divider, lmWrap.nextSibling);
+            }
+        }
+    }
+
+    if (direction === 'prepend') {
+
+        if (direction === 'prepend') {
+            const existingDividers = area.querySelectorAll('.msg-day-divider');
+            const firstDividerDate = existingDividers[0]?.dataset.dividerDate ?? '';
+            if (msgDateStr !== firstDividerDate) {
+                const divider = document.createElement('div');
+                divider.className            = 'msg-day-divider';
+                divider.dataset.dividerDate  = msgDateStr;
+                divider.textContent          = getDateLabel(created_at);
+                area.insertBefore(divider, lmWrap.nextSibling);
+            }
+        }
+    }
+
+    if (direction === 'prepend') {
+        // Insert after the load-more button
+        const afterEl = lmWrap.nextSibling;
+        area.insertBefore(div, afterEl);
+    } else {
+        // Insert before the typing indicator
+        area.insertBefore(div, typing);
+        area.scrollTop = area.scrollHeight;
+    }
 }
 
-// ── Typing ────────────────────────────────────────────────────
+// ── Image picking ──────────────────────────────────────────────
+function onImageSelected(input) {
+    const file = input.files[0];
+    if (!file) return;
+    selectedImageFile = file;
+
+    const strip = document.getElementById('imgPreviewStrip');
+    const thumb = document.getElementById('imgPreviewThumb');
+    const name  = document.getElementById('imgPreviewName');
+
+    thumb.src        = URL.createObjectURL(file);
+    name.textContent = file.name;
+    strip.classList.add('show');
+}
+
+function clearImageSelection() {
+    selectedImageFile = null;
+    document.getElementById('imageFileInput').value = '';
+    document.getElementById('imgPreviewStrip').classList.remove('show');
+    document.getElementById('imgPreviewThumb').src = '';
+}
+
+// ── Image Lightbox ─────────────────────────────────────────────
+function openLightbox(src) {
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightbox').classList.add('active');
+}
+
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+}
+
+// ── Typing ─────────────────────────────────────────────────────
 function notifyTyping() {
     if (!currentConvId) return;
     clearTimeout(typingTimeout);
@@ -822,7 +779,7 @@ function hideTypingIndicator() {
     document.getElementById('typingIndicator').style.display = 'none';
 }
 
-// ── Sidebar Update ────────────────────────────────────────────
+// ── Sidebar helpers ────────────────────────────────────────────
 function updateSidebarPreview(convId, text) {
     const el = document.getElementById(`conv-preview-${convId}`);
     const te = document.getElementById(`conv-time-${convId}`);
@@ -830,7 +787,7 @@ function updateSidebarPreview(convId, text) {
     if (te) te.textContent = 'Just now';
 }
 
-// ── New Conversation Modal ────────────────────────────────────
+// ── New Conversation Modal ─────────────────────────────────────
 function openNewConvModal()  { document.getElementById('newConvModal').classList.add('active'); }
 function closeNewConvModal() { document.getElementById('newConvModal').classList.remove('active'); }
 
@@ -861,15 +818,35 @@ async function startConversation(userId) {
     }
 }
 
-// ── Misc Helpers ──────────────────────────────────────────────
-function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
 function searchConvs(q) {
     document.querySelectorAll('.conv-item').forEach(item => {
         item.style.display = item.dataset.name.includes(q.toLowerCase()) ? 'flex' : 'none';
     });
+}
+
+// ── Misc ───────────────────────────────────────────────────────
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function getDateLabel(isoString) {
+    const msgDate   = new Date(isoString);
+    const today     = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (msgDate.toDateString() === today.toDateString())     return 'Today';
+    if (msgDate.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+    const diffDays = Math.floor((today - msgDate) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 7) {
+        return msgDate.toLocaleDateString('en-US', { weekday: 'long' });
+    }
+    if (diffDays < 365) {
+        return msgDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+    return msgDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 function handleEnter(e) {
@@ -881,29 +858,23 @@ function autoResize(el) {
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
-// ── Auto-open on load ─────────────────────────────────────────
+// ── Auto-open on page load ─────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
     initEcho();
+    startHeartbeat();
 
     const openId = parseInt(new URLSearchParams(window.location.search).get('open'));
     if (openId) {
         const el = document.getElementById(`conv-item-${openId}`);
-        if (el) {
-            el.click();
-        } else {
-            const first = document.querySelector('.conv-item');
-            if (first) first.click();
-        }
+        if (el) el.click();
     } else {
         @if($conversations->isNotEmpty())
-        openConversation(
-            {{ $conversations->first()['id'] }},
-            '{{ addslashes($conversations->first()['other']->name) }}',
-            '{{ $conversations->first()['initials'] }}',
-            '{{ $conversations->first()['color'] }}'
-        );
+        document.getElementById('conv-item-{{ $conversations->first()['id'] }}')?.click();
         @endif
     }
 });
+
+// Stop heartbeat when user leaves page
+window.addEventListener('beforeunload', stopHeartbeat);
 </script>
 @endpush

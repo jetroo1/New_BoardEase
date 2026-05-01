@@ -37,9 +37,13 @@
 
     .booking-bottom { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
 
-    .booking-countdown { background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:7px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px; }
+    .booking-countdown { background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px; }
     .bc-label { font-size:0.75rem;color:var(--orange);font-weight:700; }
-    .bc-time { font-size:0.875rem;font-weight:800;font-variant-numeric:tabular-nums; }
+    .bc-time { font-size:0.875rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text); }
+
+    [data-theme="dark"] .booking-countdown { background:rgba(255,247,237,0.08);border-color:rgba(254,215,170,0.25); }
+    [data-theme="dark"] .bc-time { color:#fdba74; }
+    [data-theme="dark"] .bc-label { color:#fb923c; }
 
     /* ── STATUS TRACKER ── */
     .status-tracker { padding:16px 20px;border-top:1px solid var(--border);background:var(--bg); }
@@ -69,36 +73,51 @@
         transition:all 0.3s;
         margin-bottom:6px;
     }
-    .step-circle.done  { background:var(--teal);border-color:var(--teal);color:#fff; }
-    .step-circle.active { background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 0 0 4px rgba(232,105,42,0.15); }
-    .step-circle.rejected { background:#ef4444;border-color:#ef4444;color:#fff; }
-    .step-circle.cancelled { background:#94a3b8;border-color:#94a3b8;color:#fff; }
+    .step-circle.done             { background:var(--teal);border-color:var(--teal);color:#fff; }
+    .step-circle.inactive         { background:var(--card);border-color:var(--border);color:var(--text-muted); }
+    .step-circle.pending-active   { background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 0 0 4px rgba(232,105,42,0.15); }
+    .step-circle.confirmed-active { background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 0 0 4px rgba(32,178,140,0.15); }
+    .step-circle.completed-active { background:var(--blue-accent);border-color:var(--blue-accent);color:#fff;box-shadow:0 0 0 4px rgba(59,130,246,0.15); }
+    .step-circle.rejected         { background:#ef4444;border-color:#ef4444;color:#fff; }
+    .step-circle.cancelled        { background:#94a3b8;border-color:#94a3b8;color:#fff; }
 
     .step-label { font-size:0.7rem;font-weight:600;color:var(--text-muted);text-align:center;line-height:1.3; }
-    .step-label.done   { color:var(--teal); }
-    .step-label.active { color:var(--orange);font-weight:700; }
-    .step-label.rejected { color:#ef4444; }
-    .step-label.cancelled { color:#94a3b8; }
+    .step-label.done             { color:var(--teal); }
+    .step-label.pending-active   { color:var(--orange);font-weight:700; }
+    .step-label.confirmed-active { color:var(--teal);font-weight:700; }
+    .step-label.completed-active { color:var(--blue-accent);font-weight:700; }
+    .step-label.rejected         { color:#ef4444; }
+    .step-label.cancelled        { color:#94a3b8; }
 
     .tracker-line-fill {
-        position:absolute;
-        top:15px;
-        left:15px;
-        height:2px;
-        background:var(--teal);
-        z-index:0;
-        transition:width 0.4s ease;
+    position:absolute;
+    top:15px;
+    left:15px;
+    height:2px;
+    background:var(--teal);
+    z-index:0;
+    transition:width 0.4s ease;
     }
-    .tracker-line-fill.rejected { background:#ef4444; }
-    .tracker-line-fill.cancelled { background:#94a3b8; }
+    .tracker-line-fill.pending-line   { background:var(--orange); }
+    .tracker-line-fill.confirmed-line { background:var(--teal); }
+    .tracker-line-fill.completed-line { background:var(--blue-accent); }
+    .tracker-line-fill.rejected       { background:#ef4444; }
+    .tracker-line-fill.cancelled      { background:#94a3b8; }
 
     /* status message below tracker */
-    .tracker-message { margin-top:10px;font-size:0.8rem;padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:6px; }
-    .tracker-message.pending   { background:#fff7ed;color:#92400e;border:1px solid #fed7aa; }
-    .tracker-message.confirmed { background:#f0fdf4;color:#166534;border:1px solid #86efac; }
-    .tracker-message.completed { background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe; }
-    .tracker-message.rejected  { background:#fef2f2;color:#991b1b;border:1px solid #fca5a5; }
-    .tracker-message.cancelled { background:#f8fafc;color:#64748b;border:1px solid #e2e8f0; }
+    .tracker-message { margin-top:10px;font-size:0.8rem;padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);color:var(--text); }
+    .tracker-message.pending   { border-left:3px solid var(--orange); }
+    .tracker-message.confirmed { border-left:3px solid var(--teal); }
+    .tracker-message.completed { border-left:3px solid var(--blue-accent); }
+    .tracker-message.rejected  { border-left:3px solid #ef4444; }
+    .tracker-message.cancelled { border-left:3px solid #94a3b8; }
+
+    [data-theme="dark"] .tracker-message.pending   { background:rgba(255,247,237,0.08);color:#fdba74;border-color:rgba(254,215,170,0.25); }
+[data-theme="dark"] .tracker-message.confirmed { background:rgba(240,253,244,0.08);color:#86efac;border-color:rgba(134,239,172,0.25); }
+[data-theme="dark"] .tracker-message.completed { background:rgba(239,246,255,0.08);color:#93c5fd;border-color:rgba(191,219,254,0.25); }
+[data-theme="dark"] .tracker-message.rejected  { background:rgba(254,242,242,0.08);color:#fca5a5;border-color:rgba(252,165,165,0.25); }
+[data-theme="dark"] .tracker-message.cancelled { background:rgba(248,250,252,0.08);color:#94a3b8;border-color:rgba(226,232,240,0.25); }
+
 
     /* Sidebar */
     .overview-card { background:var(--card);border-radius:14px;border:1px solid var(--border);padding:20px;margin-bottom:16px; }
@@ -126,6 +145,16 @@
 
     .empty-state { text-align:center;padding:60px 20px;color:var(--text-muted); }
     .empty-state i { font-size:3rem;margin-bottom:12px;opacity:0.3; }
+    /* Avatar image support */
+.conv-avatar img,
+.chat-peer-avatar img,
+.msg-avatar img,
+.user-item .conv-avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
 </style>
 @endpush
 
@@ -141,6 +170,12 @@
 @if(session('success'))
 <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px 16px;margin-bottom:16px;color:#16a34a;font-weight:600;display:flex;align-items:center;gap:8px;">
     <i class="fas fa-check-circle"></i> {{ session('success') }}
+</div>
+@endif
+
+@if(session('error'))
+<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:12px 16px;margin-bottom:16px;color:#dc2626;font-weight:600;display:flex;align-items:center;gap:8px;">
+    <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
 </div>
 @endif
 
@@ -174,13 +209,13 @@
                 // Steps: submitted → under review → confirmed → completed
                 // Step states: done, active, inactive, rejected, cancelled
                 $steps = match($booking->status) {
-                    'pending'   => ['done','active','inactive','inactive'],
-                    'confirmed' => ['done','done','active','inactive'],
-                    'completed' => ['done','done','done','done'],
-                    'rejected'  => ['done','rejected','inactive','inactive'],
-                    'cancelled' => ['cancelled','inactive','inactive','inactive'],
-                    default     => ['done','active','inactive','inactive'],
-                };
+                'pending'   => ['done','pending-active','inactive','inactive'],
+                'confirmed' => ['done','done','confirmed-active','inactive'],
+                'completed' => ['done','done','done','completed-active'],
+                'rejected'  => ['done','rejected','inactive','inactive'],
+                'cancelled' => ['cancelled','inactive','inactive','inactive'],
+                default     => ['done','pending-active','inactive','inactive'],
+            };
 
                 // Line fill width between steps (0%, 33%, 66%, 100%)
                 $lineWidth = match($booking->status) {
@@ -193,10 +228,13 @@
                 };
 
                 $lineClass = match($booking->status) {
-                    'rejected'  => 'rejected',
-                    'cancelled' => 'cancelled',
-                    default     => '',
-                };
+    'pending'   => 'pending-line',
+    'confirmed' => 'confirmed-line',
+    'completed' => 'completed-line',
+    'rejected'  => 'rejected',
+    'cancelled' => 'cancelled',
+    default     => 'pending-line',
+};
 
                 $stepLabels = ['Submitted', 'Under Review', 'Confirmed', 'Completed'];
                 $stepIcons  = ['fas fa-paper-plane', 'fas fa-search', 'fas fa-check', 'fas fa-home'];
@@ -249,7 +287,7 @@
                             @if($booking->status === 'confirmed')
                             <div class="booking-countdown">
                                 <span class="bc-label">⏱ Move-out countdown:</span>
-                                <span class="bc-time" data-moveout="{{ $booking->end_date }}">Loading...</span>
+                               <span class="bc-time" data-moveout="{{ \Carbon\Carbon::parse($booking->end_date)->toDateTimeString() }}">Loading...</span>
                             </div>
                             @endif
                         </div>

@@ -7,13 +7,16 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
 use App\Events\MessageSent;
+use App\Events\MessageRead;
 use App\Events\UserTyping;
+use App\Events\UserOnlineStatus;
 use App\Events\WebRTCSignal;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ChatController extends Controller
 {
-    // Avatar color palette — consistent per user id
+    // Consistent avatar color per user id
     private function colorForUser(User $user): string
     {
         $colors = ['#2ec4a5','#8b5cf6','#f59e0b','#3b82f6','#ec4899','#ef4444','#10b981','#f97316'];
@@ -21,11 +24,15 @@ class ChatController extends Controller
     }
 
     /**
-     * Show the chat page with all conversations for the authenticated user.
+     * Show the chat page.
+     * Also updates the user's last_seen_at so others see them as online.
      */
     public function index(Request $request)
     {
         $user = Auth::user();
+
+        // Update online status
+        $user->update(['last_seen_at' => now()]);
 
         $conversations = Conversation::where('participant_one', $user->id)
             ->orWhere('participant_two', $user->id)
@@ -37,52 +44,51 @@ class ChatController extends Controller
                 $unread = $conv->unreadCount($user->id);
                 $last   = $conv->lastMessage;
                 return [
-                    'id'       => $conv->id,
-                    'other'    => $other,
-                    'color'    => $this->colorForUser($other),
-                    'initials' => strtoupper(substr($other->name, 0, 1)),
-                    'preview'  => $last ? \Str::limit($last->content, 40) : 'Start a conversation',
-                    'time'     => $last ? $last->created_at->diffForHumans(null, true) . ' ago' : '',
-                    'unread'   => $unread,
+                    'id'        => $conv->id,
+                    'other'     => $other,
+                    'color'     => $this->colorForUser($other),
+                    'initials'  => strtoupper(substr($other->name, 0, 1)),
+                    'avatar_url' => $other->avatar_url, 
+                    'preview'   => $last
+                        ? ($last->image_path ? '📷 Image' : \Str::limit($last->content, 40))
+                        : 'Start a conversation',
+                    'time'      => $last ? $last->created_at->diffForHumans(null, true) . ' ago' : '',
+                    'unread'    => $unread,
+                    'is_online' => $other->isOnline(),
+                    'last_seen' => $other->lastSeenText(),
                 ];
             });
 
-        // All users except self (for new conversation modal)
-        $allUsers = User::where('id', '!=', $user->id)->select('id','name','role')->get()
+       $allUsers = User::where('id', '!=', $user->id)->select('id','name','role','avatar','profile_photo')->get()
             ->map(fn($u) => array_merge($u->toArray(), [
                 'color'    => $this->colorForUser($u),
                 'initials' => strtoupper(substr($u->name, 0, 1)),
+                'avatar_url' => $u->avatar_url, 
             ]));
 
         return view('chat.index', [
-            'user'         => $user,
-            'userColor'    => $this->colorForUser($user),
-            'userInitials' => strtoupper(substr($user->name, 0, 1)),
+            'user'          => $user,
+            'userColor'     => $this->colorForUser($user),
+            'userInitials'  => strtoupper(substr($user->name, 0, 1)),
             'conversations' => $conversations,
-            'allUsers'     => $allUsers,
+            'allUsers'      => $allUsers,
         ]);
     }
 
     /**
-     * Start or open a conversation with another user.
+     * Redirect to chat page with conversation open.
      */
     public function show(Request $request, $conversationId)
     {
         $user = Auth::user();
         $conv = Conversation::findOrFail($conversationId);
-
         abort_unless($conv->hasParticipant($user->id), 403);
-
-        Message::where('conversation_id', $conv->id)
-            ->where('sender_id', '!=', $user->id)
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
 
         return redirect()->route('chat', ['open' => $conversationId]);
     }
 
     /**
-     * Get or create a conversation with a user, then redirect to chat.
+     * Start or open a conversation with another user.
      */
     public function startOrOpen(Request $request)
     {
@@ -112,7 +118,8 @@ class ChatController extends Controller
     }
 
     /**
-     * Load messages for a conversation (AJAX).
+     * Load messages with pagination (20 per page, scroll up loads more).
+     * GET /chat/{conversation}/messages?page=1&per_page=20
      */
     public function getMessages(Request $request, $conversationId)
     {
@@ -120,43 +127,104 @@ class ChatController extends Controller
         $conv = Conversation::findOrFail($conversationId);
         abort_unless($conv->hasParticipant($user->id), 403);
 
-        Message::where('conversation_id', $conv->id)
+        // Mark all incoming messages as read
+        $unreadMessages = Message::where('conversation_id', $conv->id)
+            ->where('sender_id', '!=', $user->id)
+            ->whereNull('read_at')
+            ->get();
+
+        if ($unreadMessages->isNotEmpty()) {
+            Message::where('conversation_id', $conv->id)
+                ->where('sender_id', '!=', $user->id)
+                ->whereNull('read_at')
+                ->update(['read_at' => now()]);
+
+            // Tell the sender their messages were seen
+            $other = $conv->getOtherParticipant($user->id);
+            broadcast(new MessageRead(
+                conversationId: $conv->id,
+                senderId:       $other->id,
+                readerId:       $user->id,
+            ))->toOthers();
+        }
+
+        // Paginate: newest messages last, load older ones by page
+        $perPage = (int) $request->get('per_page', 30);
+        $page    = (int) $request->get('page', 1);
+
+        $total    = Message::where('conversation_id', $conv->id)->count();
+        $messages = Message::where('conversation_id', $conv->id)
+            ->with('sender')
+            ->orderBy('created_at', 'asc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'messages'     => $messages->map(fn($m) => $this->formatMessage($m, $user->id)),
+            'has_more'     => $messages->hasMorePages() === false && $page > 1 ? false : $page < $messages->lastPage(),
+            'current_page' => $page,
+            'last_page'    => $messages->lastPage(),
+            'total'        => $total,
+        ]);
+    }
+
+    /**
+     * Mark messages in a conversation as seen.
+     * POST /chat/{conversation}/seen
+     */
+    public function markSeen(Request $request, $conversationId)
+    {
+        $user = Auth::user();
+        $conv = Conversation::findOrFail($conversationId);
+        abort_unless($conv->hasParticipant($user->id), 403);
+
+        $updated = Message::where('conversation_id', $conv->id)
             ->where('sender_id', '!=', $user->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        $messages = Message::where('conversation_id', $conv->id)
-            ->with('sender')
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->map(fn($m) => [
-                'id'       => $m->id,
-                'content'  => $m->content,
-                'sent'     => $m->sender_id === $user->id,
-                'initials' => strtoupper(substr($m->sender->name, 0, 1)),
-                'color'    => $this->colorForUser($m->sender),
-                'time'     => $m->created_at->format('h:i A'),
-                'read'     => $m->isRead(),
-            ]);
+        if ($updated > 0) {
+            $other = $conv->getOtherParticipant($user->id);
+            broadcast(new MessageRead(
+                conversationId: $conv->id,
+                senderId:       $other->id,
+                readerId:       $user->id,
+            ))->toOthers();
+        }
 
-        return response()->json(['messages' => $messages]);
+        return response()->json(['ok' => true, 'marked' => $updated]);
     }
 
     /**
-     * Send a message and broadcast via Reverb.
+     * Send a text or image message.
+     * POST /chat/{conversation}/messages
      */
     public function sendMessage(Request $request, $conversationId)
     {
-        $request->validate(['content' => 'required|string|max:5000']);
+        $request->validate([
+            'content' => 'nullable|string|max:5000',
+            'image'   => 'nullable|image|max:5120', // max 5MB
+        ]);
+
+        // Must have either content or image
+        if (!$request->filled('content') && !$request->hasFile('image')) {
+            return response()->json(['error' => 'Message content or image required'], 422);
+        }
 
         $user = Auth::user();
         $conv = Conversation::findOrFail($conversationId);
         abort_unless($conv->hasParticipant($user->id), 403);
 
+        // Handle image upload
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('chat-images', 'public');
+        }
+
         $message = Message::create([
             'conversation_id' => $conv->id,
             'sender_id'       => $user->id,
-            'content'         => $request->content,
+            'content'         => $request->content ?? '',
+            'image_path'      => $imagePath,
         ]);
 
         $conv->update(['last_message_at' => now()]);
@@ -169,15 +237,18 @@ class ChatController extends Controller
             senderId:       $user->id,
             senderName:     $user->name,
             initials:       strtoupper(substr($user->name, 0, 1)),
-            content:        $request->content,
+            content:        $request->content ?? '',
             time:           $message->created_at->format('h:i A'),
             color:          $this->colorForUser($user),
+            imageUrl:       $message->image_url,   // ← FIX: pass image URL to receiver
+            avatarUrl:      $user->avatar_url, 
         ))->toOthers();
 
         return response()->json([
-            'id'      => $message->id,
-            'content' => $message->content,
-            'time'    => $message->created_at->format('h:i A'),
+            'id'        => $message->id,
+            'content'   => $message->content,
+            'image_url' => $message->image_url,
+            'time'      => $message->created_at->format('h:i A'),
         ]);
     }
 
@@ -190,6 +261,9 @@ class ChatController extends Controller
         $conv = Conversation::findOrFail($conversationId);
         abort_unless($conv->hasParticipant($user->id), 403);
 
+        // Update last_seen while typing too
+        $user->update(['last_seen_at' => now()]);
+
         $recipient = $conv->getOtherParticipant($user->id);
         broadcast(new UserTyping($recipient->id, $user->name))->toOthers();
 
@@ -197,10 +271,34 @@ class ChatController extends Controller
     }
 
     /**
-     * Relay a WebRTC signaling message to the other participant.
-     *
-     * FIX: Pass payload as plain array (no re-encoding) and include conversationId
-     * so the callee knows which conversation to route their answer signal through.
+     * Update online status (called via heartbeat from frontend every 60s).
+     * POST /chat/heartbeat
+     */
+    public function heartbeat(Request $request)
+    {
+        $user = Auth::user();
+        $user->update(['last_seen_at' => now()]);
+
+        // Notify all conversations' other participants of online status
+        $conversations = Conversation::where('participant_one', $user->id)
+            ->orWhere('participant_two', $user->id)
+            ->get();
+
+        foreach ($conversations as $conv) {
+            $other = $conv->getOtherParticipant($user->id);
+            broadcast(new UserOnlineStatus(
+                recipientId:  $other->id,
+                userId:       $user->id,
+                isOnline:     true,
+                lastSeenText: 'Online',
+            ))->toOthers();
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Relay a WebRTC signaling message (kept for backward compatibility).
      */
     public function signal(Request $request, $conversationId)
     {
@@ -214,8 +312,6 @@ class ChatController extends Controller
 
         $recipient = $conv->getOtherParticipant($user->id);
 
-        // Accept payload as plain array — do NOT re-encode/decode.
-        // Re-encoding was corrupting SDP strings in the previous version.
         $payload = $request->input('payload', []);
         if (!is_array($payload)) {
             $payload = (array) $payload;
@@ -227,9 +323,27 @@ class ChatController extends Controller
             senderName:     $user->name,
             type:           $request->type,
             payload:        $payload,
-            conversationId: $conv->id,   // ← FIX: now included
+            conversationId: $conv->id,
         ))->toOthers();
 
         return response()->json(['ok' => true]);
+    }
+
+    // ── Private helper ────────────────────────────────────────
+    private function formatMessage(Message $m, int $myId): array
+    {
+        return [
+            'id'        => $m->id,
+            'content'   => $m->content,
+            'image_url' => $m->image_url,
+            'sent'      => $m->sender_id === $myId,
+            'initials'  => strtoupper(substr($m->sender->name, 0, 1)),
+            'color'     => $this->colorForUser($m->sender),
+            'avatar_url' => $m->sender->avatar_url,
+            'time'      => $m->created_at->format('h:i A'),
+            'created_at' => $m->created_at->toIso8601String(),
+            'read'      => $m->isRead(),
+            'seen_at'   => $m->read_at?->toIso8601String(),
+        ];
     }
 }

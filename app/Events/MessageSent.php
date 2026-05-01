@@ -24,6 +24,8 @@ class MessageSent implements ShouldBroadcastNow
         public readonly string $content,
         public readonly string $time,
         public readonly string $color,
+        public readonly ?string $imageUrl = null,
+        public readonly ?string $avatarUrl = null,
     ) {}
 
     public function broadcastOn(): array
@@ -46,6 +48,8 @@ class MessageSent implements ShouldBroadcastNow
             'content'         => $this->content,
             'time'            => $this->time,
             'color'           => $this->color,
+            'image_url'       => $this->imageUrl,
+            'avatar_url'      => $this->avatarUrl, 
         ];
     }
 }

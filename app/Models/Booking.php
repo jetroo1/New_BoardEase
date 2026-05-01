@@ -14,6 +14,11 @@ class Booking extends Model
         'status',
     ];
 
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date'   => 'date',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -27,5 +32,12 @@ class Booking extends Model
     public function review()
     {
         return $this->hasOne(Review::class);
+    }
+
+    public function isActiveStay(): bool
+    {
+        return $this->status === 'confirmed'
+            && $this->start_date->lte(today())
+            && $this->end_date->gte(today());
     }
 }
