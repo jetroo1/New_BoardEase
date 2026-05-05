@@ -15,7 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__.'/../routes/channels.php',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'is_tenant' => \App\Http\Middleware\IsTenant::class,
+            'is_owner'  => \App\Http\Middleware\IsOwner::class,
+            'is_admin'  => \App\Http\Middleware\IsAdmin::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

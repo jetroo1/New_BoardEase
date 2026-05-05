@@ -133,7 +133,7 @@
             <!-- Room Type -->
             <div class="filter-group">
                 <label class="filter-label">Room Type</label>
-                @foreach(['single'=>'Single Room','double'=>'Double Room','triple'=>'Triple Room','dormitory'=>'Dormitory'] as $val => $label)
+                @foreach(['single'=>'Single Room','double'=>'Double Room','studio'=>'Studio','shared'=>'Shared Room','dormitory'=>'Dormitory'] as $val => $label)
                 <label class="filter-option">
                     <input type="radio" name="room_type" value="{{ $val }}" {{ request('room_type') === $val ? 'checked' : '' }}>
                     <div class="custom-check custom-radio"></div>
@@ -143,17 +143,21 @@
             </div>
 
             <!-- Amenities -->
-            <div class="filter-group">
-                <label class="filter-label">Amenities</label>
-                @foreach(['wifi'=>'WiFi Included','ac'=>'Air Conditioning','kitchen'=>'Shared Kitchen','security'=>'24/7 Security'] as $val => $label)
-                <label class="filter-option">
-                    <input type="checkbox" name="amenities[]" value="{{ $val }}"
-                        {{ in_array($val, request('amenities', [])) ? 'checked' : '' }}>
-                    <div class="custom-check"></div>
-                    <span>{{ $label }}</span>
-                </label>
-                @endforeach
-            </div>
+<div class="filter-group">
+    <label class="filter-label">Amenities</label>
+    @foreach([
+        'WiFi Included', 'Air Conditioning', 'Shared Kitchen', '24/7 Security',
+        'Unlimited Water', 'Shared Laundry', 'Electricity Backup', 'Parking',
+        'CCTV', 'Gym', 'Elevator', 'Pet Friendly',
+    ] as $amenity)
+    <label class="filter-option">
+        <input type="checkbox" name="amenities[]" value="{{ $amenity }}"
+            {{ in_array($amenity, request('amenities', [])) ? 'checked' : '' }}>
+        <div class="custom-check"></div>
+        <span>{{ $amenity }}</span>
+    </label>
+    @endforeach
+</div>
 
             @if(request('q'))
             <input type="hidden" name="q" value="{{ request('q') }}">

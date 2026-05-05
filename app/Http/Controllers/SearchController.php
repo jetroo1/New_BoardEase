@@ -10,6 +10,7 @@ class SearchController extends Controller
     public function index(Request $request)
     {
         $query = Property::query();
+        $query = Property::query()->where('is_approved', true);
 
         // Keyword search
         if ($request->filled('q')) {
@@ -56,8 +57,7 @@ class SearchController extends Controller
         $results = Property::where('title', 'like', '%' . $q . '%')
             ->orWhere('address', 'like', '%' . $q . '%')
             ->limit(6)
-            ->get(['id', 'title', 'address', 'price', 'room_type']);
-
+            ->get(['id', 'title', 'address', 'price', 'room_type', 'image']);
         return response()->json($results);
     }
 }

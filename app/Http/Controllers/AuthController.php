@@ -11,10 +11,8 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
-    public function showLogin()
-    {
-        return view('auth.login');
-    }
+    public function showLogin()   { return view('auth.login'); }
+    public function showRegister(){ return view('auth.login'); }
 
     public function login(Request $request)
     {
@@ -23,16 +21,13 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $userExists = User::where('email', $request->email)->exists();
-        if (!$userExists) {
-            return back()->withErrors([
-                'email' => 'No account found. Please register first.'
-            ])->withInput();
+        if (!User::where('email', $request->email)->exists()) {
+            return back()->withErrors(['email' => 'No account found. Please register first.'])->withInput();
         }
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('dashboard');
+            return redirect(Auth::user()->redirectPath());
         }
 
         return back()->withErrors(['email' => 'Invalid email or password.']);
@@ -43,7 +38,7 @@ class AuthController extends Controller
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users',
-            'password' => 'required|min:6',
+            'password' => 'required|min:6|confirmed',
             'role'     => 'required|in:tenant,owner',
         ]);
 
@@ -55,10 +50,10 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
-        return redirect()->route('dashboard');
+        return redirect($user->redirectPath());
     }
 
-    // ─── Google ───────────────────────────────────────────────────────────────
+    // ── Google ────────────────────────────────────────────────────────────────
 
     public function googleRedirect()
     {
@@ -75,114 +70,114 @@ class AuthController extends Controller
                 ->user();
 
             $user = User::where('google_id', $googleUser->id)
-                        ->orWhere('email', $googleUser->email)
-                        ->first();
+                        ->orWhere('email', $googleUser->email)->first();
 
-            if ($user) {
+            $avatarUrl = $googleUser->avatar;
+            if ($avatarUrl) {
+                $avatarUrl = preg_replace('/=s\d+-c/', '=s200-c', $avatarUrl);
+            }
+
+            if (!$user) {
+                $user = User::create([
+                    'name'          => $googleUser->name,
+                    'email'         => $googleUser->email,
+                    'password'      => Hash::make(Str::random(24)),
+                    'role'          => 'tenant',
+                    'google_id'     => $googleUser->id,
+                    'avatar'        => $avatarUrl,
+                    'profile_photo' => $avatarUrl,
+                ]);
+            } else {
                 $user->update([
-                    'google_id' => $googleUser->id,
-                    'avatar'    => $googleUser->avatar,
+                    'google_id'     => $googleUser->id,
+                    'avatar'        => $avatarUrl,
+                    'profile_photo' => $user->profile_photo ?: $avatarUrl,
+                ]);
+            }
+
+            Auth::login($user);
+            return redirect($user->redirectPath());
+
+        } catch (\Exception $e) {
+            return redirect()->route('login')->withErrors(['email' => $e->getMessage()]);
+        }
+    }
+
+    // ── Facebook ──────────────────────────────────────────────────────────────
+
+    public function facebookRedirect()
+{
+    session(['facebook_intent' => 'login']);
+    return Socialite::driver('facebook')
+        ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
+        ->stateless()
+        ->redirect();
+}
+
+public function facebookRegisterRedirect()
+{
+    session(['facebook_intent' => 'register']);
+    return Socialite::driver('facebook')
+        ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
+        ->stateless()
+        ->redirect();
+}
+
+    public function facebookCallback(Request $request)
+{
+    // User cancelled or Facebook returned an error
+    if ($request->has('error') || !$request->has('code')) {
+        return redirect()->route('login')
+            ->with('social_cancelled', 'Facebook sign-in was cancelled.');
+    }
+
+    // Read intent from session
+    $intent = session('facebook_intent', 'login');
+    session()->forget(['facebook_state', 'facebook_intent']);
+
+    try {
+        $fbUser = Socialite::driver('facebook')
+            ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
+            ->stateless()
+            ->user();
+
+        $user = User::where('facebook_id', $fbUser->id)
+                    ->orWhere('email', $fbUser->email)
+                    ->first();
+
+        if ($user) {
+            $user->update([
+                'facebook_id'   => $fbUser->id,
+                'avatar'        => $fbUser->avatar,
+                'profile_photo' => $user->profile_photo ?: $fbUser->avatar,
+            ]);
+        } else {
+            if ($intent === 'register') {
+                $user = User::create([
+                    'name'          => $fbUser->name,
+                    'email'         => $fbUser->email ?? $fbUser->id . '@facebook.com',
+                    'password'      => Hash::make(Str::random(24)),
+                    'role'          => 'tenant',
+                    'facebook_id'   => $fbUser->id,
+                    'avatar'        => $fbUser->avatar,
+                    'profile_photo' => $fbUser->avatar,
                 ]);
             } else {
                 return redirect()->route('login')
-                    ->withErrors(['email' => 'No account found for this Google account. Please register first.']);
+                    ->withErrors(['email' => 'No account found. Please register first.']);
             }
-
-            Auth::login($user);
-            return redirect()->route('dashboard');
-
-        } catch (\Exception $e) {
-            return redirect()->route('login')
-                ->withErrors(['email' => $e->getMessage()]);
-        }
-    }
-
-    // ─── Facebook ─────────────────────────────────────────────────────────────
-
-    /**
-     * Redirect for Facebook LOGIN (Sign In page).
-     */
-    public function facebookRedirect()
-    {
-        session(['facebook_intent' => 'login']);
-
-        return Socialite::driver('facebook')
-            ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
-            ->redirect();
-    }
-
-    /**
-     * Redirect for Facebook REGISTER (Register page).
-     */
-    public function facebookRegisterRedirect()
-    {
-        session(['facebook_intent' => 'register']);
-
-        return Socialite::driver('facebook')
-            ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
-            ->redirect();
-    }
-
-    /**
-     * Single callback for both login and register via Facebook.
-     * Uses the 'facebook_intent' session key to distinguish the two flows.
-     */
-    public function facebookCallback(Request $request)
-    {
-        // Handle cancellation or missing code
-        if ($request->has('error') || !$request->has('code')) {
-            return redirect()->route('login')
-                ->with('social_cancelled', 'Facebook sign-in was cancelled.');
         }
 
-        try {
-            $facebookUser = Socialite::driver('facebook')
-                ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
-                ->user();
+        Auth::login($user);
+        return redirect($user->redirectPath());
 
-            $user = User::where('facebook_id', $facebookUser->id)
-                        ->orWhere('email', $facebookUser->email)
-                        ->first();
+    } catch (\Exception $e) {
+    return redirect()->route('login')
+        ->with('social_cancelled', 'Facebook sign-in cancelled.');
+}
+}
 
-            if ($user) {
-                // Existing user — update Facebook details and log in
-                $user->update([
-                    'facebook_id' => $facebookUser->id,
-                    'avatar'      => $facebookUser->avatar,
-                ]);
-
-            } else {
-                // No existing user found
-                $intent = session('facebook_intent', 'login');
-
-                if ($intent === 'register') {
-                    // ✅ Create a brand-new account
-                    $user = User::create([
-                        'name'        => $facebookUser->name,
-                        'email'       => $facebookUser->email,
-                        'password'    => Hash::make(Str::random(24)),
-                        'role'        => 'tenant', // default role for Facebook registrations
-                        'facebook_id' => $facebookUser->id,
-                        'avatar'      => $facebookUser->avatar,
-                    ]);
-                } else {
-                    // Login intent but no account exists — tell them to register
-                    return redirect()->route('login')
-                        ->withErrors(['email' => 'No account found for this Facebook account. Please register first.']);
-                }
-            }
-
-            Auth::login($user);
-            session()->forget('facebook_intent');
-            return redirect()->route('dashboard');
-
-        } catch (\Exception $e) {
-            return redirect()->route('login')
-                ->with('social_cancelled', 'Facebook sign-in was cancelled or an error occurred.');
-        }
-    }
-
-    // ─── Logout ───────────────────────────────────────────────────────────────
+    // ── Logout ────────────────────────────────────────────────────────────────
 
     public function logout(Request $request)
     {

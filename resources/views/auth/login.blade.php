@@ -488,6 +488,16 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password_confirmation"
+                            class="form-input {{ old('_form') == 'register' && $errors->has('password_confirmation') ? 'is-error' : '' }}"
+                            placeholder="Re-enter your password" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label">I am a...</label>
                     <div class="role-select">
                         <div class="role-btn selected" onclick="selectRole(this, 'tenant')">

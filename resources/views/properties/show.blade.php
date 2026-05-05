@@ -7,11 +7,11 @@
 <style>
     .detail-layout { display:grid;grid-template-columns:1fr 340px;gap:24px; }
 
-    .gallery { display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:6px;border-radius:14px;overflow:hidden;margin-bottom:24px;height:600px;cursor:pointer;position:relative; }
+    .gallery { display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr;gap:6px;border-radius:14px;overflow:hidden;margin-bottom:24px;height:600px;cursor:pointer;position:relative; }
     .gallery-main { grid-row:1/3; }
-    .gallery-main img,.gallery-thumb img { width:100%;height:100%;object-fit:cover;transition:transform 0.3s; }
-    .gallery-main:hover img,.gallery-thumb:hover img { transform:scale(1.03); }
-    .gallery-main,.gallery-thumb { overflow:hidden; }
+    .gallery-main img { width:100%;height:100%;object-fit:cover;transition:transform 0.3s; }
+    .gallery-main:hover img { transform:scale(1.03); }
+    .gallery-main { overflow:hidden; }
     .gallery-more { position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,0.7);color:#fff;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;display:flex;align-items:center;gap:5px; }
     .gallery-badges { position:absolute;top:12px;left:12px;display:flex;gap:6px; }
     .gallery-badge { padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:700; }
@@ -55,7 +55,6 @@
     .room-price-row { display:flex;align-items:center;justify-content:space-between; }
     .room-price { font-size:0.95rem;font-weight:800;color:var(--text); }
 
-    /* Reviews */
     .reviews-section { display:flex;flex-direction:column;gap:14px;margin-bottom:8px; }
     .review-item { padding:16px;background:var(--bg);border-radius:12px;border:1px solid var(--border); }
     .review-item-header { display:flex;align-items:center;gap:10px;margin-bottom:8px; }
@@ -75,7 +74,7 @@
     .nearby-name { font-weight:600; }
     .nearby-dist { color:var(--text-muted); }
 
-    .booking-sidebar { position: sticky; top: 80px; }
+    .booking-sidebar { position:sticky;top:80px; }
     .booking-card { background:var(--card);border-radius:14px;border:1px solid var(--border);padding:22px; }
     .price-from { font-size:0.75rem;color:var(--text-muted);margin-bottom:2px; }
     .price-main { font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:700;margin-bottom:2px; }
@@ -104,16 +103,18 @@
         : 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80';
 
     $amenityMap = [
-        'wifi'       => ['icon'=>'fas fa-wifi',       'label'=>'High-speed WiFi',    'class'=>'ai-teal'],
-        'ac'         => ['icon'=>'fas fa-snowflake',   'label'=>'Air Conditioning',   'class'=>'ai-blue'],
-        'security'   => ['icon'=>'fas fa-shield-alt',  'label'=>'24/7 Security',      'class'=>'ai-orange'],
-        'water'      => ['icon'=>'fas fa-tint',        'label'=>'Unlimited Water',     'class'=>'ai-green'],
-        'laundry'    => ['icon'=>'fas fa-tshirt',      'label'=>'Shared Laundry',     'class'=>'ai-purple'],
-        'backup'     => ['icon'=>'fas fa-bolt',        'label'=>'Electricity Backup', 'class'=>'ai-orange'],
-        'parking'    => ['icon'=>'fas fa-car',         'label'=>'Parking',            'class'=>'ai-blue'],
-        'cctv'       => ['icon'=>'fas fa-video',       'label'=>'CCTV',               'class'=>'ai-orange'],
-        'kitchen'    => ['icon'=>'fas fa-utensils',    'label'=>'Shared Kitchen',     'class'=>'ai-green'],
-        'gym'        => ['icon'=>'fas fa-dumbbell',    'label'=>'Gym',                'class'=>'ai-purple'],
+        'WiFi Included'      => ['icon'=>'fas fa-wifi',       'label'=>'High-speed WiFi',    'class'=>'ai-teal'],
+        'Air Conditioning'   => ['icon'=>'fas fa-snowflake',  'label'=>'Air Conditioning',   'class'=>'ai-blue'],
+        '24/7 Security'      => ['icon'=>'fas fa-shield-alt', 'label'=>'24/7 Security',      'class'=>'ai-orange'],
+        'Unlimited Water'    => ['icon'=>'fas fa-tint',       'label'=>'Unlimited Water',    'class'=>'ai-green'],
+        'Shared Laundry'     => ['icon'=>'fas fa-tshirt',     'label'=>'Shared Laundry',     'class'=>'ai-purple'],
+        'Electricity Backup' => ['icon'=>'fas fa-bolt',       'label'=>'Electricity Backup', 'class'=>'ai-orange'],
+        'Parking'            => ['icon'=>'fas fa-car',        'label'=>'Parking',            'class'=>'ai-blue'],
+        'CCTV'               => ['icon'=>'fas fa-video',      'label'=>'CCTV',               'class'=>'ai-orange'],
+        'Shared Kitchen'     => ['icon'=>'fas fa-utensils',   'label'=>'Shared Kitchen',     'class'=>'ai-green'],
+        'Gym'                => ['icon'=>'fas fa-dumbbell',   'label'=>'Gym',                'class'=>'ai-purple'],
+        'Elevator'           => ['icon'=>'fas fa-elevator',   'label'=>'Elevator',           'class'=>'ai-blue'],
+        'Pet Friendly'       => ['icon'=>'fas fa-paw',        'label'=>'Pet Friendly',       'class'=>'ai-green'],
     ];
 
     $storedAmenities = $property->amenities
@@ -122,7 +123,7 @@
 
     $displayAmenities = [];
     foreach ($storedAmenities as $key) {
-        $k = strtolower($key);
+        $k = trim($key);
         if (isset($amenityMap[$k])) {
             $displayAmenities[] = $amenityMap[$k];
         } else {
@@ -134,47 +135,95 @@
         $displayAmenities = array_values($amenityMap);
     }
 
-    $lat = $property->latitude  ?? 7.4460;
-    $lng = $property->longitude ?? 125.8050;
+    $extraPhotos = $property->photos
+        ? json_decode($property->photos, true)
+        : [];
+    $extraPhotos  = is_array($extraPhotos) ? $extraPhotos : [];
+    $totalExtras  = count($extraPhotos);
+
+    $lat   = $property->latitude  ?? 7.4460;
+    $lng   = $property->longitude ?? 125.8050;
     $price = number_format($property->price, 0);
 @endphp
 
-<!-- Gallery -->
-<div style="position:relative;">
-    <div class="gallery">
-        <div class="gallery-main">
-            <img src="{{ $image }}" alt="{{ $property->title }}">
-        </div>
-        @php
-    $extraPhotos = $property->photos 
-        ? json_decode($property->photos, true) 
-        : [];
-    $thumb1 = $extraPhotos[0] ?? null;
-    $thumb2 = $extraPhotos[1] ?? null;
-@endphp
+{{-- ═══════════════════════════════════════════
+     GALLERY
+     Left  : main profile photo (tall, full height)
+     Right : up to 4 additional photos stacked
+════════════════════════════════════════════ --}}
+<div style="position:relative;margin-bottom:24px;">
 
-<div class="gallery-thumb">
-    <img src="{{ $thumb1 ? Storage::url($thumb1) : 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&q=80' }}" alt="Room interior">
-</div>
-<div class="gallery-thumb">
-    <img src="{{ $thumb2 ? Storage::url($thumb2) : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&q=80' }}" alt="Common area">
-</div>
+    <div class="gallery" style="display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr;gap:6px;height:600px;border-radius:14px;overflow:hidden;">
+
+        {{-- Main photo --}}
+        <div style="overflow:hidden;height:600px;">
+            <img src="{{ $image }}" alt="{{ $property->title }}"
+                 style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s;"
+                 onmouseover="this.style.transform='scale(1.03)'"
+                 onmouseout="this.style.transform='scale(1)'">
+        </div>
+
+        {{-- Right column: 4 stacked slots --}}
+        <div style="display:grid;grid-template-rows:repeat(4,1fr);gap:6px;height:600px;">
+            @for($i = 0; $i < 4; $i++)
+            @php
+                $photoUrl  = isset($extraPhotos[$i]) ? Storage::url($extraPhotos[$i]) : null;
+                $isLast    = ($i === 3);
+                $remaining = $totalExtras - 4;
+            @endphp
+
+            @if($photoUrl)
+                <div style="position:relative;overflow:hidden;">
+                    <img src="{{ $photoUrl }}" alt="Photo {{ $i + 1 }}"
+                         style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s;"
+                         onmouseover="this.style.transform='scale(1.03)'"
+                         onmouseout="this.style.transform='scale(1)'">
+                    @if($isLast && $remaining > 0)
+                    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                        <span style="color:#fff;font-size:1.1rem;font-weight:700;">+{{ $remaining }} more</span>
+                    </div>
+                    @endif
+                </div>
+            @elseif($i < 2)
+                {{-- First 2 empty slots: show a dim placeholder --}}
+                <div style="overflow:hidden;background:#e2e8f0;">
+                    <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&q=80"
+                         alt="No photo"
+                         style="width:100%;height:100%;object-fit:cover;opacity:0.35;">
+                </div>
+            @else
+                {{-- Slots 3 & 4 when empty: subtle blank --}}
+                <div style="background:var(--bg);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;">
+                    <span style="font-size:0.72rem;color:var(--text-muted);">No photo</span>
+                </div>
+            @endif
+            @endfor
+        </div>
+
     </div>
+
+    {{-- Badges top-left --}}
     <div class="gallery-badges">
         <span class="gallery-badge gb-popular">POPULAR CHOICE</span>
         <span class="gallery-badge gb-verified">VERIFIED</span>
     </div>
-    <div class="gallery-more"><i class="fas fa-images"></i> +12 Photos</div>
+
+    {{-- Label bottom-right --}}
+    <div class="gallery-more">
+        <i class="fas fa-images"></i> Official Pictures
+    </div>
+
 </div>
+{{-- END GALLERY --}}
 
 <div class="detail-layout">
-    <!-- Left Column -->
+
+    {{-- ═══ LEFT COLUMN ═══ --}}
     <div>
         <div class="prop-header">
             <div>
                 <h1 class="prop-title">{{ $property->title }}</h1>
 
-                {{-- Dynamic star rating from real reviews --}}
                 <div class="prop-rating-row">
                     <div class="stars">
                         @php
@@ -206,7 +255,7 @@
                 </div>
             </div>
             <div class="prop-actions">
-                <button class="icon-action {{ $isFavorited ? 'fav-active' : '' }}"
+                <button class="icon-action"
                         id="favBtn"
                         onclick="toggleFavorite({{ $property->id }})"
                         title="{{ $isFavorited ? 'Remove from favorites' : 'Save to favorites' }}"
@@ -217,11 +266,11 @@
             </div>
         </div>
 
-        <!-- About -->
+        {{-- About --}}
         <div class="section-title">About this property</div>
         <p class="about-text">{{ $property->description }}</p>
 
-        <!-- Amenities -->
+        {{-- Amenities --}}
         <div class="section-title">What this place offers</div>
         <div class="amenities-grid">
             @foreach($displayAmenities as $a)
@@ -232,29 +281,30 @@
             @endforeach
         </div>
 
-        <!-- Room Type -->
+        {{-- Available Rooms --}}
         <div class="section-title">Available Rooms</div>
         <div class="rooms-grid">
             @php
                 $roomTypes = [
-                    'single'   => ['label'=>'Single Occupancy', 'desc'=>'Private unit, one occupant',    'size'=>'12 m²', 'icon'=>'fas fa-bed',   'badge'=>'AVAILABLE','badgeClass'=>'avail-yes', 'multiplier'=>1.2],
-                    'double'   => ['label'=>'Double Occupancy', 'desc'=>'Shared room, two separate beds','size'=>'19 m²', 'icon'=>'fas fa-users', 'badge'=>'POPULAR', 'badgeClass'=>'avail-pop', 'multiplier'=>1.0],
-                    'triple'   => ['label'=>'Triple Occupancy', 'desc'=>'Shared room, three occupants',  'size'=>'25 m²', 'icon'=>'fas fa-users', 'badge'=>'AVAILABLE','badgeClass'=>'avail-yes', 'multiplier'=>0.85],
-                    'dormitory'=> ['label'=>'Dormitory',        'desc'=>'Shared dorm-style room',        'size'=>'30 m²', 'icon'=>'fas fa-bed',   'badge'=>'AVAILABLE','badgeClass'=>'avail-yes', 'multiplier'=>0.7],
-                ];
+    'single'    => ['label'=>'Single Occupancy', 'desc'=>'Private unit, one occupant',    'size'=>'12 m²','icon'=>'fas fa-bed',  'badge'=>'AVAILABLE','badgeClass'=>'avail-yes','multiplier'=>1.0],
+    'double'    => ['label'=>'Double Occupancy', 'desc'=>'Shared room, two separate beds','size'=>'19 m²','icon'=>'fas fa-users','badge'=>'POPULAR', 'badgeClass'=>'avail-pop','multiplier'=>0.85],
+    'triple'    => ['label'=>'Triple Occupancy', 'desc'=>'Shared room, three occupants',  'size'=>'25 m²','icon'=>'fas fa-users','badge'=>'AVAILABLE','badgeClass'=>'avail-yes','multiplier'=>0.75],
+    'dormitory' => ['label'=>'Dormitory',        'desc'=>'Shared dorm-style room',        'size'=>'30 m²','icon'=>'fas fa-bed',  'badge'=>'AVAILABLE','badgeClass'=>'avail-yes','multiplier'=>0.65],
+];
                 $currentType = strtolower($property->room_type ?? 'double');
-                $showTypes = isset($roomTypes[$currentType])
+                $showTypes   = isset($roomTypes[$currentType])
                     ? [$currentType => $roomTypes[$currentType]]
                     : array_slice($roomTypes, 0, 2, true);
                 if (count($showTypes) === 1) {
-                    $others = array_diff_key($roomTypes, $showTypes);
+                    $others    = array_diff_key($roomTypes, $showTypes);
                     $showTypes = $showTypes + array_slice($others, 0, 1, true);
                 }
             @endphp
 
             @foreach($showTypes as $typeKey => $room)
             @php $roomPrice = number_format($property->price * $room['multiplier'], 0); @endphp
-            <div class="room-card {{ $loop->first ? 'selected' : '' }}" onclick="selectRoom(this, '{{ $typeKey }}', {{ (int)($property->price * $room['multiplier']) }})">
+            <div class="room-card {{ $loop->first ? 'selected' : '' }}"
+                 onclick="selectRoom(this, '{{ $typeKey }}', {{ (int)($property->price * $room['multiplier']) }})">
                 <div class="room-header">
                     <span class="room-name">{{ $room['label'] }}</span>
                     <span class="room-avail {{ $room['badgeClass'] }}">{{ $room['badge'] }}</span>
@@ -271,7 +321,7 @@
             @endforeach
         </div>
 
-        <!-- ── REVIEWS SECTION ── -->
+        {{-- Reviews --}}
         <div class="section-title">
             Reviews
             @if($reviews->count())
@@ -309,7 +359,7 @@
             </div>
         @endif
 
-        <!-- Map -->
+        {{-- Map --}}
         <div class="section-title">Location & Surroundings</div>
         <div id="propertyMap"></div>
         <div class="map-nearby">
@@ -330,7 +380,7 @@
         </div>
     </div>
 
-    <!-- Booking Sidebar -->
+    {{-- ═══ BOOKING SIDEBAR ═══ --}}
     <div class="booking-sidebar">
         <div class="booking-card">
             <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:16px;">
@@ -358,7 +408,9 @@
             <div class="form-row" style="margin-bottom:12px;">
                 <div>
                     <div class="book-label">Move-in Date</div>
-                    <input type="date" class="book-input" id="moveInDate" value="{{ date('Y-m-d', strtotime('+1 day')) }}" onchange="updatePrice()">
+                    <input type="date" class="book-input" id="moveInDate"
+                           value="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                           onchange="updatePrice()">
                 </div>
                 <div>
                     <div class="book-label">Duration</div>
@@ -382,12 +434,16 @@
                 </div>
                 <div class="pb-row total">
                     <span>Total Initial Pay</span>
-                    <span id="pbTotal" style="color:var(--orange)">₱{{ number_format($property->price * 2, 0) }}.00</span>
+                    <span id="pbTotal" style="color:var(--orange)">
+                        ₱{{ number_format($property->price * 2, 0) }}.00
+                    </span>
                 </div>
             </div>
 
             <div style="background:#f0fdfb;border:1px solid #99f6e4;border-radius:8px;padding:10px 12px;margin-bottom:14px;">
-                <div style="font-size:0.75rem;color:#0d9488;font-weight:700;margin-bottom:3px;">📅 Projected Move-out Date</div>
+                <div style="font-size:0.75rem;color:#0d9488;font-weight:700;margin-bottom:3px;">
+                    📅 Projected Move-out Date
+                </div>
                 <div style="font-size:0.875rem;font-weight:700;" id="moveOutPreview">Calculating...</div>
                 <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;" id="moveOutCountdown">...</div>
             </div>
@@ -402,29 +458,42 @@
                 <button type="submit" class="reserve-btn">RESERVE NOW</button>
             </form>
 
-            <p class="guarantee-note">You won't be charged yet. Our admin will contact you to verify your application within 24 hours.</p>
+            <p class="guarantee-note">
+                You won't be charged yet. Our admin will contact you to verify your application within 24 hours.
+            </p>
         </div>
     </div>
+
 </div>
 @endsection
 
 @push('scripts')
 <script>
-const propLat   = {{ $lat }};
-const propLng   = {{ $lng }};
+const propLat     = {{ $lat }};
+const propLng     = {{ $lng }};
 const propTitle   = @json($property->title);
 const propAddress = @json($property->address);
 
 const pmap = L.map('propertyMap').setView([propLat, propLng], 16);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(pmap);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+}).addTo(pmap);
 
 const propIcon = L.divIcon({
     html: `<div style="background:var(--orange,#e8692a);color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,0.25)">📍 ${propTitle}</div>`,
-    className:'', iconAnchor:[60,28]
+    className: '',
+    iconAnchor: [60, 28]
 });
-L.marker([propLat, propLng], { icon: propIcon }).addTo(pmap)
-    .bindPopup(`<strong>${propTitle}</strong><br>${propAddress}`).openPopup();
-L.circle([propLat, propLng], { radius:500, color:'var(--teal,#2ec4a5)', fillOpacity:0.05, weight:1.5 }).addTo(pmap);
+L.marker([propLat, propLng], { icon: propIcon })
+    .addTo(pmap)
+    .bindPopup(`<strong>${propTitle}</strong><br>${propAddress}`)
+    .openPopup();
+L.circle([propLat, propLng], {
+    radius: 500,
+    color: 'var(--teal,#2ec4a5)',
+    fillOpacity: 0.05,
+    weight: 1.5
+}).addTo(pmap);
 
 function toggleFavorite(propertyId) {
     const btn  = document.getElementById('favBtn');
@@ -439,15 +508,15 @@ function toggleFavorite(propertyId) {
     .then(r => r.json())
     .then(data => {
         if (data.favorited) {
-            icon.className = 'fas fa-heart';
-            btn.style.color = 'var(--red)';
+            icon.className        = 'fas fa-heart';
+            btn.style.color       = 'var(--red)';
             btn.style.borderColor = 'var(--red)';
-            btn.title = 'Remove from favorites';
+            btn.title             = 'Remove from favorites';
         } else {
-            icon.className = 'far fa-heart';
-            btn.style.color = '';
+            icon.className        = 'far fa-heart';
+            btn.style.color       = '';
             btn.style.borderColor = '';
-            btn.title = 'Save to favorites';
+            btn.title             = 'Save to favorites';
         }
     });
 }
@@ -466,19 +535,24 @@ function updatePrice() {
 
     if (moveIn) {
         document.getElementById('hiddenCheckIn').value = moveIn;
-        const mo = new Date(moveIn);
+        const mo   = new Date(moveIn);
         mo.setMonth(mo.getMonth() + duration);
-        const opts = { year:'numeric', month:'long', day:'numeric' };
-        document.getElementById('moveOutPreview').textContent = mo.toLocaleDateString('en-US', opts);
+        const opts = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('moveOutPreview').textContent =
+            mo.toLocaleDateString('en-US', opts);
 
         function tickMoveOut() {
             const diff = mo - new Date();
-            if (diff <= 0) { document.getElementById('moveOutCountdown').textContent = 'Move-out date reached'; return; }
-            const d = Math.floor(diff/86400000);
-            const h = Math.floor((diff%86400000)/3600000);
-            const m = Math.floor((diff%3600000)/60000);
-            const s = Math.floor((diff%60000)/1000);
-            document.getElementById('moveOutCountdown').textContent = `⏱ ${d}d ${h}h ${m}m ${s}s remaining`;
+            if (diff <= 0) {
+                document.getElementById('moveOutCountdown').textContent = 'Move-out date reached';
+                return;
+            }
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            document.getElementById('moveOutCountdown').textContent =
+                `⏱ ${d}d ${h}h ${m}m ${s}s remaining`;
         }
         tickMoveOut();
         if (window._moveOutTimer) clearInterval(window._moveOutTimer);
@@ -486,7 +560,8 @@ function updatePrice() {
     }
 
     const sel = document.getElementById('roomTypeSelect');
-    document.getElementById('hiddenRoomType').value = sel.options[sel.selectedIndex].dataset.type;
+    document.getElementById('hiddenRoomType').value =
+        sel.options[sel.selectedIndex].dataset.type;
 }
 
 function selectRoom(el, type, price) {
@@ -494,7 +569,10 @@ function selectRoom(el, type, price) {
     el.classList.add('selected');
     const sel = document.getElementById('roomTypeSelect');
     for (let i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].dataset.type === type) { sel.selectedIndex = i; break; }
+        if (sel.options[i].dataset.type === type) {
+            sel.selectedIndex = i;
+            break;
+        }
     }
     updatePrice();
 }

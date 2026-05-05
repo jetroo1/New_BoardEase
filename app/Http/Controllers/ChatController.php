@@ -59,12 +59,15 @@ class ChatController extends Controller
                 ];
             });
 
-       $allUsers = User::where('id', '!=', $user->id)->select('id','name','role','avatar','profile_photo')->get()
-            ->map(fn($u) => array_merge($u->toArray(), [
-                'color'    => $this->colorForUser($u),
-                'initials' => strtoupper(substr($u->name, 0, 1)),
-                'avatar_url' => $u->avatar_url, 
-            ]));
+        $allUsers = User::where('id', '!=', $user->id)->get()     
+        ->map(fn($u) => [
+         'id'         => $u->id,
+         'name'       => $u->name,
+         'role'       => $u->role,
+         'color'      => $this->colorForUser($u),
+         'initials'   => strtoupper(substr($u->name, 0, 1)),
+         'avatar_url' => $u->avatar_url,
+     ]);
 
         return view('chat.index', [
             'user'          => $user,

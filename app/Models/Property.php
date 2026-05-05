@@ -7,20 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 class Property extends Model
 {
     protected $fillable = [
-        'user_id',
-        'title',
-        'description',
-        'address',
-        'price',
-        'room_type',
-        'amenities',
-        'latitude',
-        'longitude',
-        'image',
-        'status',
+        'user_id', 'title', 'description', 'address',
+        'price', 'room_type', 'amenities',
+        'latitude', 'longitude', 'image', 'photos', 'status', 'is_approved',
+    ];
+
+    protected $casts = [
+        'is_approved' => 'boolean',
+        'latitude'    => 'float',
+        'longitude'   => 'float',
     ];
 
     public function owner()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
@@ -36,12 +39,27 @@ class Property extends Model
     }
 
     public function reviews()
-{
-    return $this->hasMany(Review::class);
-}
+    {
+        return $this->hasMany(Review::class);
+    }
 
-    public function isFavoritedBy($userId)
-{
-    return $this->favorites()->where('user_id', $userId)->exists();
-}
+    public function isFavoritedBy($userId): bool
+    {
+        return $this->favorites()->where('user_id', $userId)->exists();
+    }
+
+    public function hasCoordinates(): bool
+    {
+        return !is_null($this->latitude) && !is_null($this->longitude);
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('is_approved', true);
+    }
+
+    public function scopeOwnedBy($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
 }

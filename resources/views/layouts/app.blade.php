@@ -464,44 +464,52 @@
         </div>
     </div>
 
-    <nav class="sidebar-nav">
-        <a href="{{ route('dashboard') }}" class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-            <i class="fas fa-th-large"></i> Dashboard
-            @auth @if(auth()->user()->role === 'admin') <span style="font-size:0.65rem;background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:4px;margin-left:2px">Admin</span> @endif @endauth
-        </a>
-        <a href="{{ route('search') }}" class="nav-item {{ request()->routeIs('search') ? 'active' : '' }}">
-            <i class="fas fa-search"></i> Search
-        </a>
-        <a href="{{ route('bookings.index') }}" class="nav-item {{ request()->routeIs('bookings.index') ? 'active' : '' }}">
-            <i class="fas fa-calendar-check"></i> My Bookings
-        </a>
-        <a href="{{ route('favorites') }}" class="nav-item {{ request()->routeIs('favorites') ? 'active' : '' }}">
-            <i class="fas fa-heart"></i> Favorites
-        </a>
-        <a href="{{ route('reviews') }}" class="nav-item {{ request()->routeIs('reviews') ? 'active' : '' }}">
-            <i class="fas fa-star"></i> Reviews
-        </a>
-        <a href="{{ route('notifications') }}" class="nav-item {{ request()->routeIs('notifications') ? 'active' : '' }}">
-            <i class="fas fa-bell"></i> Notifications
-        </a>
-        <a href="{{ route('chat') }}" class="nav-item {{ request()->routeIs('chat') ? 'active' : '' }}">
-            <i class="fas fa-comments"></i> Messages
-        </a>
-        <a href="{{ route('settings') }}" class="nav-item {{ request()->routeIs('settings') ? 'active' : '' }}">
-            <i class="fas fa-cog"></i> Settings
-        </a>
-    </nav>
+    @php $role = auth()->user()->role ?? 'tenant'; @endphp
+<nav class="sidebar-nav">
+
+  @if($role === 'tenant')
+    <a href="{{ route('dashboard') }}" class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a href="{{ route('search') }}" class="nav-item {{ request()->routeIs('search') ? 'active' : '' }}"><i class="fas fa-search"></i> Search</a>
+    <a href="{{ route('bookings.index') }}" class="nav-item {{ request()->routeIs('bookings.index') ? 'active' : '' }}"><i class="fas fa-calendar-check"></i> My Bookings</a>
+    <a href="{{ route('favorites') }}" class="nav-item {{ request()->routeIs('favorites') ? 'active' : '' }}"><i class="fas fa-heart"></i> Favorites</a>
+    <a href="{{ route('reviews') }}" class="nav-item {{ request()->routeIs('reviews') ? 'active' : '' }}"><i class="fas fa-star"></i> Reviews</a>
+    <a href="{{ route('notifications') }}" class="nav-item {{ request()->routeIs('notifications') ? 'active' : '' }}"><i class="fas fa-bell"></i> Notifications</a>
+    <a href="{{ route('chat') }}" class="nav-item {{ request()->routeIs('chat*') ? 'active' : '' }}"><i class="fas fa-comments"></i> Messages</a>
+    <a href="{{ route('settings') }}" class="nav-item {{ request()->routeIs('settings') ? 'active' : '' }}"><i class="fas fa-cog"></i> Settings</a>
+  @endif
+
+  @if($role === 'owner')
+    <a href="{{ route('owner.dashboard') }}" class="nav-item {{ request()->routeIs('owner.dashboard') ? 'active' : '' }}"><i class="fas fa-th-large"></i> Dashboard <span style="font-size:0.65rem;background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:4px;margin-left:2px;">Owner</span></a>
+    <a href="{{ route('owner.properties') }}" class="nav-item {{ request()->routeIs('owner.properties*') ? 'active' : '' }}"><i class="fas fa-home"></i> My Properties</a>
+    <a href="{{ route('owner.bookings') }}" class="nav-item {{ request()->routeIs('owner.bookings*') ? 'active' : '' }}"><i class="fas fa-calendar-check"></i> Bookings</a>
+    <a href="{{ route('chat') }}" class="nav-item {{ request()->routeIs('chat*') ? 'active' : '' }}"><i class="fas fa-comments"></i> Messages</a>
+    <a href="{{ route('notifications') }}" class="nav-item {{ request()->routeIs('notifications') ? 'active' : '' }}"><i class="fas fa-bell"></i> Notifications</a>
+    <a href="{{ route('settings') }}" class="nav-item {{ request()->routeIs('settings') ? 'active' : '' }}"><i class="fas fa-cog"></i> Settings</a>
+  @endif
+
+  @if($role === 'admin')
+    <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="fas fa-th-large"></i> Dashboard <span style="font-size:0.65rem;background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:4px;margin-left:2px;">Admin</span></a>
+    <a href="{{ route('admin.users') }}" class="nav-item {{ request()->routeIs('admin.users*') ? 'active' : '' }}"><i class="fas fa-users"></i> All Users</a>
+    <a href="{{ route('admin.properties') }}" class="nav-item {{ request()->routeIs('admin.properties*') ? 'active' : '' }}"><i class="fas fa-home"></i> All Properties</a>
+    <a href="{{ route('admin.bookings') }}" class="nav-item {{ request()->routeIs('admin.bookings*') ? 'active' : '' }}"><i class="fas fa-calendar-check"></i> All Bookings</a>
+    <a href="{{ route('search') }}" class="nav-item {{ request()->routeIs('search') ? 'active' : '' }}"><i class="fas fa-search"></i> Browse</a>
+    <a href="{{ route('chat') }}" class="nav-item {{ request()->routeIs('chat*') ? 'active' : '' }}"><i class="fas fa-comments"></i> Messages</a>
+    <a href="{{ route('settings') }}" class="nav-item {{ request()->routeIs('settings') ? 'active' : '' }}"><i class="fas fa-cog"></i> Settings</a>
+  @endif
+
+</nav>
 
     @auth
-    @if(auth()->user()->role === 'admin')
-    <a href="{{ route('properties.create') }}" class="btn-add-property">
-        <i class="fas fa-plus"></i> Add New Property
+    @if($role === 'owner')
+<a href="{{ route('owner.properties.create') }}" class="btn-add-property">
     </a>
     @endif
 
     <div class="sidebar-bottom">
         <div class="sidebar-user" onclick="toggleSidebarMenu()" style="position:relative;">
-            <img src="{{ auth()->user()->photo }}" alt="avatar">
+            <img src="{{ auth()->user()->photo }}"
+     alt="avatar"
+     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=2ec4a5&color=fff'">
             <div class="sidebar-user-info">
                 <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
                 <div class="sidebar-user-role">My Account</div>
@@ -557,7 +565,9 @@
                     <div class="topbar-profile-name">{{ auth()->user()->name }}</div>
                     <div class="topbar-profile-role">{{ ucfirst(auth()->user()->role ?? 'Tenant') }}</div>
                 </div>
-                <img src="{{ auth()->user()->photo }}" alt="avatar">
+                <img src="{{ auth()->user()->photo }}"
+     alt="avatar"
+     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=2ec4a5&color=fff'">
                 <div id="profileMenu" style="display:none;position:absolute;top:48px;right:0;min-width:160px;z-index:999;overflow:hidden;" class="dropdown-menu-card">
                     <a href="{{ route('settings') }}" class="dropdown-menu-item">
                         <i class="fas fa-cog" style="color:var(--text-muted);width:16px;"></i> Settings
@@ -672,7 +682,12 @@ searchInput.addEventListener('input', function() {
                 } else {
                     let html = data.map(p => `
                         <a href="/properties/${p.id}" class="suggestion-item">
-                            <div class="suggestion-icon"><i class="fas fa-home"></i></div>
+                            <div class="suggestion-icon" style="padding:0;overflow:hidden;border-radius:8px;">
+                                ${p.image
+                                    ? `<img src="/storage/${p.image}" style="width:34px;height:34px;object-fit:cover;display:block;border-radius:8px;">`
+                                    : `<i class="fas fa-home"></i>`
+                                }
+                            </div>
                             <div class="suggestion-info">
                                 <div class="suggestion-name">${p.title}</div>
                                 <div class="suggestion-addr"><i class="fas fa-map-marker-alt" style="font-size:0.7rem;margin-right:3px;"></i>${p.address}</div>

@@ -143,7 +143,7 @@
         <div class="table-header">
             <h3>My Listings</h3>
             <div style="display:flex;gap:8px;">
-                <a href="{{ route('properties.create') }}" class="btn btn-sm btn-primary">
+                <a href="{{ route('admin.properties') }}" class="btn btn-sm btn-primary">
                     <i class="fas fa-plus"></i> Add New
                 </a>
             </div>
@@ -202,7 +202,7 @@
         </table>
 
         <div class="add-listing-row">
-            <a href="{{ route('properties.create') }}" class="add-listing-btn">
+            <a href="{{ route('admin.properties') }}" class="add-listing-btn">
                 <i class="fas fa-plus-circle"></i> Add New Listing
             </a>
         </div>
@@ -229,12 +229,12 @@
             </div>
             <div class="req-actions">
                 {{-- Approve form --}}
-                <form method="POST" action="{{ route('bookings.approve', $booking->id) }}" style="display:inline;">
+                <form method="POST" action="{{ route('admin.bookings.approve', $booking->id) }}" style="display:inline;">
                     @csrf
                     <button type="submit" class="btn-approve">Approve</button>
                 </form>
                 {{-- Reject form --}}
-                <form method="POST" action="{{ route('bookings.reject', $booking->id) }}"
+                <form method="POST" action="{{ route('admin.bookings.reject', $booking->id) }}"
                       style="display:inline;"
                       onsubmit="return confirm('Reject this booking from {{ $booking->user->name }}?')">
                     @csrf
@@ -265,7 +265,7 @@
         </div>
         @endforeach
 
-        <button class="view-all-btn" onclick="window.location='{{ route('bookings') }}'">
+        <button class="view-all-btn" onclick="window.location='{{ route('bookings.index') }}'">
             View All Requests
         </button>
     </div>

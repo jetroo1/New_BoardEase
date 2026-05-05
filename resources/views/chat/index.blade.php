@@ -20,8 +20,7 @@
     .conv-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; cursor: pointer; transition: background 0.15s; position: relative; }
     .conv-item:hover  { background: var(--bg); }
     .conv-item.active { background: color-mix(in srgb, var(--blue-accent) 10%, var(--card)); }
-    .conv-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: #fff; }
-    .online-dot  { position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; background: var(--green); border-radius: 50%; border: 2px solid var(--card); }
+    .conv-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: #fff; overflow: hidden; }    .online-dot  { position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; background: var(--green); border-radius: 50%; border: 2px solid var(--card); }
     .offline-dot { position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; background: var(--text-muted); border-radius: 50%; border: 2px solid var(--card); }
     .conv-info    { flex: 1; overflow: hidden; }
     .conv-name    { font-size: 0.875rem; font-weight: 700; margin-bottom: 2px; }
@@ -34,8 +33,7 @@
     .chat-window  { flex: 1; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
     .chat-topbar  { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
     .chat-peer    { display: flex; align-items: center; gap: 12px; }
-    .chat-peer-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; position: relative; }
-    .chat-peer-name   { font-size: 0.95rem; font-weight: 700; }
+    .chat-peer-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; position: relative; overflow: hidden; }    .chat-peer-name   { font-size: 0.95rem; font-weight: 700; }
     .chat-peer-status { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 1px; }
     .chat-peer-status.is-online { color: var(--green); }
     .status-dot   { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
@@ -51,8 +49,7 @@
     .msg-day-divider::before, .msg-day-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
     .msg-group      { display: flex; gap: 10px; max-width: 70%; }
     .msg-group.sent { margin-left: auto; flex-direction: row-reverse; }
-    .msg-avatar     { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; align-self: flex-end; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; }
-    .msg-bubbles    { display: flex; flex-direction: column; gap: 3px; }
+    .msg-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; align-self: flex-end; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; overflow: hidden; }    .msg-bubbles    { display: flex; flex-direction: column; gap: 3px; }
     .msg-bubble     { padding: 10px 14px; border-radius: 14px; font-size: 0.875rem; line-height: 1.5; max-width: 100%; word-wrap: break-word; }
     .msg-group:not(.sent) .msg-bubble { background: var(--card); color: var(--text); border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
     .msg-group.sent .msg-bubble       { background: var(--navy); color: #fff; border-bottom-right-radius: 4px; }
@@ -170,9 +167,9 @@
                  data-name="{{ strtolower($conv['other']->name) }}"
                  data-peer-id="{{ $conv['other']->id }}">
                 <div style="position:relative;flex-shrink:0;">
-    <div class="conv-avatar" style="background:{{ $conv['color'] }}">
+    <div class="conv-avatar" style="background:{{ $conv['color'] }};overflow:hidden;border-radius:50%;">
         @if($conv['avatar_url'])
-            <img src="{{ $conv['avatar_url'] }}" alt="{{ $conv['initials'] }}">
+            <img src="{{ $conv['avatar_url'] }}" alt="{{ $conv['initials'] }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">
         @else
             {{ $conv['initials'] }}
         @endif
@@ -303,12 +300,13 @@
         <div class="user-list" id="userList">
             @foreach($allUsers as $u)
             <div class="user-item" data-name="{{ strtolower($u['name']) }}" onclick="startConversation({{ $u['id'] }})">
-                <div class="conv-avatar" style="background:{{ $u['color'] }};width:36px;height:36px;font-size:0.8rem;">
+                <div class="conv-avatar" style="background:{{ $u['color'] }};width:36px;height:36px;font-size:0.8rem;overflow:hidden;border-radius:50%;">
     @if(!empty($u['avatar_url']))
-        <img src="{{ $u['avatar_url'] }}" alt="{{ $u['initials'] }}">
+        <img src="{{ $u['avatar_url'] }}" alt="{{ $u['initials'] }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">
     @else
         {{ $u['initials'] }}
-    @endif</div>
+    @endif
+</div>
                 <div>
                     <div style="font-size:0.875rem;font-weight:600;">{{ $u['name'] }}</div>
                     <div style="font-size:0.75rem;color:var(--text-muted);">{{ ucfirst($u['role']) }}</div>
