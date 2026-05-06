@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_tenant' => \App\Http\Middleware\IsTenant::class,
             'is_owner'  => \App\Http\Middleware\IsOwner::class,
             'is_admin'  => \App\Http\Middleware\IsAdmin::class,
+            'no_cache'  => \App\Http\Middleware\PreventBackHistory::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -45,4 +45,20 @@ return [
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect'      => env('FACEBOOK_REDIRECT_URI'),
     ],
+
+    'webrtc' => [
+        'ice_servers' => array_values(array_filter([
+            [
+                'urls' => array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', env('WEBRTC_STUN_URLS', 'stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302'))
+                ))),
+            ],
+            env('WEBRTC_TURN_URLS') ? [
+                'urls' => array_values(array_filter(array_map('trim', explode(',', env('WEBRTC_TURN_URLS'))))),
+                'username' => env('WEBRTC_TURN_USERNAME'),
+                'credential' => env('WEBRTC_TURN_CREDENTIAL'),
+            ] : null,
+        ])),
+    ],
 ];

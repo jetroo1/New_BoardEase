@@ -162,6 +162,9 @@
             @if(request('q'))
             <input type="hidden" name="q" value="{{ request('q') }}">
             @endif
+            @if(request('sort'))
+            <input type="hidden" name="sort" value="{{ request('sort') }}">
+            @endif
 
             <button type="submit" class="apply-btn">Apply Filters</button>
         </form>
@@ -198,9 +201,9 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <span style="font-size:0.85rem;color:var(--text-muted)">Sort by:</span>
             <select class="sort-select" onchange="sortProperties(this.value)">
-                <option value="latest">Newest</option>
-                <option value="price_asc">Lowest Price</option>
-                <option value="price_desc">Highest Price</option>
+                <option value="latest" {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>Newest</option>
+                <option value="price_asc" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>Lowest Price</option>
+                <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>Highest Price</option>
             </select>
         </div>
 
@@ -297,6 +300,23 @@ function syncFromInput(val) {
         `linear-gradient(to right,var(--teal) 0%,var(--teal) ${((val - 1000) / (15000 - 1000)) * 100}%,var(--border) ${((val - 1000) / (15000 - 1000)) * 100}%)`;
 }
 
+function submitFilters() {
+    const form = document.getElementById('filterForm');
+    if (!form) return;
+
+    if (form.requestSubmit) {
+        form.requestSubmit();
+        return;
+    }
+
+    form.submit();
+}
+
+function submitFiltersSoon() {
+    clearTimeout(window._filterSubmitTimer);
+    window._filterSubmitTimer = setTimeout(submitFilters, 700);
+}
+
 function toggleFav(propertyId) {
     const btn  = document.getElementById('fav-btn-' + propertyId);
     const icon = btn.querySelector('i');
@@ -330,5 +350,34 @@ function sortProperties(val) {
 
 // Init slider gradient on page load
 updatePrice(document.getElementById('priceSlider').value);
+
+document.getElementById('filterForm')?.addEventListener('change', function(event) {
+    if (event.target.matches('input[type="checkbox"], input[type="radio"]')) {
+        submitFilters();
+    }
+
+    if (event.target.id === 'priceSlider') {
+        updatePrice(event.target.value);
+        submitFilters();
+    }
+});
+
+document.getElementById('priceInput')?.addEventListener('input', function() {
+    syncFromInput(this.value);
+    submitFiltersSoon();
+});
+
+document.getElementById('priceInput')?.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        syncFromInput(this.value);
+        submitFilters();
+    }
+});
+
+document.getElementById('priceInput')?.addEventListener('blur', function() {
+    syncFromInput(this.value);
+    submitFilters();
+});
 </script>
 @endpush

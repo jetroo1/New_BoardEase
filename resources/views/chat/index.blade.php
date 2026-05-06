@@ -119,6 +119,46 @@
     .rt-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: rtPulse 1.5s infinite; }
     @keyframes rtPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
+    .chat-actions { display: flex; align-items: center; gap: 8px; }
+    .call-action-btn { width: 36px; height: 36px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--card); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .call-action-btn:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); background: color-mix(in srgb, var(--teal) 8%, var(--card)); }
+    .call-action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .call-overlay { display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(10,15,28,0.86); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 24px; }
+    .call-overlay.active { display: flex; }
+    .call-shell { width: min(960px, 96vw); max-height: 92vh; background: var(--card); border: 1px solid color-mix(in srgb, var(--border) 70%, transparent); border-radius: 14px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.36); display: flex; flex-direction: column; }
+    .call-stage { min-height: 500px; background: #0b1120; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .call-stage video { background: #0b1120; }
+    #remoteVideo { width: 100%; height: 100%; min-height: 500px; object-fit: cover; }
+    #localVideo { position: absolute; right: 18px; bottom: 18px; width: 180px; aspect-ratio: 16/10; object-fit: cover; border: 2px solid rgba(255,255,255,0.86); border-radius: 10px; background: #111827; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .call-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; gap: 10px; text-align: center; padding: 24px; }
+    .call-placeholder-icon { width: 74px; height: 74px; border-radius: 50%; background: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 1.7rem; font-weight: 800; }
+    .call-placeholder-name { font-size: 1.05rem; font-weight: 700; }
+    .call-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; background: var(--card); border-top: 1px solid var(--border); }
+    .call-peer-title { font-size: 0.95rem; font-weight: 800; }
+    .call-status { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    .call-controls { display: flex; align-items: center; gap: 8px; }
+    .call-control-btn { width: 40px; height: 40px; border: none; border-radius: 10px; background: var(--bg); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s; }
+    .call-control-btn:hover:not(:disabled) { background: var(--border); }
+    .call-control-btn.off { background: color-mix(in srgb, var(--red) 12%, var(--bg)); color: var(--red); }
+    .call-control-btn.end { background: var(--red); color: #fff; }
+    .call-control-btn.accept { background: var(--green); color: #fff; }
+    .call-control-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .incoming-call-card { display: none; padding: 30px 24px 26px; text-align: center; gap: 16px; flex-direction: column; align-items: center; }
+    .call-overlay.incoming .call-stage,
+    .call-overlay.incoming .call-bar { display: none; }
+    .call-overlay.incoming .incoming-call-card { display: flex; }
+
+    @media (max-width: 720px) {
+        .call-overlay { padding: 10px; }
+        .call-shell { width: 100%; max-height: 96vh; }
+        .call-stage { min-height: 65vh; }
+        #remoteVideo { min-height: 65vh; }
+        #localVideo { width: 120px; right: 12px; bottom: 12px; }
+        .call-bar { align-items: flex-start; flex-direction: column; }
+        .call-controls { width: 100%; justify-content: center; }
+    }
+
     .modal-card input { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
     .modal-card input:focus { border-color: var(--teal); outline: none; }
 
@@ -225,7 +265,11 @@
                         </div>
                     </div>
                 </div>
-                {{-- No call buttons per your request --}}
+                <div class="chat-actions">
+                    <button class="call-action-btn" id="startVideoCallBtn" onclick="startVideoCall()" title="Start video call" disabled>
+                        <i class="fas fa-video"></i>
+                    </button>
+                </div>
             </div>
 
             {{-- Messages --}}
@@ -322,6 +366,55 @@
     <img id="lightboxImg" src="" alt="full image">
 </div>
 
+{{-- ── WebRTC Call Overlay ── --}}
+<div class="call-overlay" id="callOverlay">
+    <div class="call-shell">
+        <div class="incoming-call-card" id="incomingCallCard">
+            <div class="call-placeholder-icon" id="incomingCallInitial">?</div>
+            <div>
+                <div class="call-peer-title" id="incomingCallName">Incoming call</div>
+                <div class="call-status" id="incomingCallStatus">Video call</div>
+            </div>
+            <div class="call-controls">
+                <button class="call-control-btn accept" onclick="acceptIncomingCall()" title="Accept call">
+                    <i class="fas fa-phone"></i>
+                </button>
+                <button class="call-control-btn end" onclick="rejectIncomingCall()" title="Decline call">
+                    <i class="fas fa-phone-slash"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="call-stage">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div class="call-placeholder" id="callPlaceholder">
+                <div class="call-placeholder-icon" id="callPlaceholderInitial">?</div>
+                <div class="call-placeholder-name" id="callPlaceholderName">Connecting</div>
+                <div class="call-status" id="callPlaceholderStatus">Waiting for video</div>
+            </div>
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+
+        <div class="call-bar">
+            <div>
+                <div class="call-peer-title" id="callPeerTitle">Video call</div>
+                <div class="call-status" id="callStatus">Connecting</div>
+            </div>
+            <div class="call-controls">
+                <button class="call-control-btn" id="toggleMicBtn" onclick="toggleMic()" title="Toggle microphone">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="call-control-btn" id="toggleCameraBtn" onclick="toggleCamera()" title="Toggle camera">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="call-control-btn end" onclick="endCall(true)" title="End call">
+                    <i class="fas fa-phone-slash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -331,6 +424,7 @@ const ME_ID    = {{ auth()->id() }};
 const ME_INIT  = '{{ $userInitials }}';
 const ME_COLOR = '{{ $userColor }}';
 const ME_AVATAR = @json(auth()->user()->avatar_url ?? '');
+const WEBRTC_ICE_SERVERS = @json(config('services.webrtc.ice_servers'));
 
 // ── State ──────────────────────────────────────────────────────
 let currentPeerAvatar = null;    
@@ -344,6 +438,16 @@ let currentPage       = 1;
 let lastPage          = 1;
 let selectedImageFile = null;
 let heartbeatInterval = null;
+let peerConnection    = null;
+let localStream       = null;
+let remoteStream      = null;
+let activeCallConvId  = null;
+let activeCallPeerId  = null;
+let activeCallPeerName = '';
+let activeCallPeerInitial = '?';
+let pendingIncomingOffer = null;
+let pendingIceCandidates = [];
+let callEnding       = false;
 
 function setAvatarEl(el, url, initials, color) {
     if (!el) return;
@@ -399,6 +503,11 @@ function initEcho() {
             // Online/offline status update
             .listen('.user.status', (e) => {
                 updatePeerOnlineStatus(e.user_id, e.is_online, e.last_seen_text);
+            })
+
+            // WebRTC offer/answer/ICE messages
+            .listen('.webrtc.signal', (e) => {
+                handleWebRTCSignal(e);
             });
 
     } catch (err) {
@@ -492,6 +601,9 @@ async function openConversation(id, name, initials, color, isOnline, lastSeenTex
     // Find the peer's user id from the conv item data attribute
     const convItem = document.getElementById(`conv-item-${id}`);
     currentPeerId  = convItem ? parseInt(convItem.dataset.peerId) : null;
+
+    const callBtn = document.getElementById('startVideoCallBtn');
+    if (callBtn) callBtn.disabled = !currentPeerId;
 
     document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
     if (convItem) convItem.classList.add('active');
@@ -755,6 +867,444 @@ function closeLightbox() {
     document.getElementById('lightbox').classList.remove('active');
 }
 
+// ── WebRTC Calls ────────────────────────────────────────────────
+function getActiveCallName() {
+    const topbarName = document.getElementById('chatPeerName')?.textContent?.trim();
+    return activeCallPeerName || topbarName || 'Contact';
+}
+
+function getInitialFromName(name) {
+    return (name || '?').trim().charAt(0).toUpperCase() || '?';
+}
+
+function setCallActionDisabled(disabled) {
+    const btn = document.getElementById('startVideoCallBtn');
+    if (btn) btn.disabled = disabled || !currentPeerId;
+}
+
+function showActiveCallOverlay(statusText) {
+    const peerName = getActiveCallName();
+    const initial  = activeCallPeerInitial || getInitialFromName(peerName);
+    const overlay  = document.getElementById('callOverlay');
+
+    overlay.classList.add('active');
+    overlay.classList.remove('incoming');
+    document.getElementById('callPeerTitle').textContent = peerName;
+    document.getElementById('callPlaceholderInitial').textContent = initial;
+    document.getElementById('callPlaceholderName').textContent = peerName;
+    document.getElementById('callPlaceholderStatus').textContent = 'Waiting for video';
+    setCallStatus(statusText || 'Connecting');
+    setCallActionDisabled(true);
+}
+
+function showIncomingCallOverlay(signal) {
+    const peerName = signal.sender_name || 'Contact';
+    const initial  = getInitialFromName(peerName);
+    const overlay  = document.getElementById('callOverlay');
+
+    overlay.classList.add('active', 'incoming');
+    document.getElementById('incomingCallName').textContent = peerName;
+    document.getElementById('incomingCallInitial').textContent = initial;
+    document.getElementById('incomingCallStatus').textContent = 'Video call';
+    setCallActionDisabled(true);
+}
+
+function hideCallOverlay() {
+    const overlay = document.getElementById('callOverlay');
+    overlay.classList.remove('active', 'incoming');
+}
+
+function setCallStatus(text) {
+    const status = document.getElementById('callStatus');
+    if (status) status.textContent = text;
+}
+
+function updateRemoteVideoState() {
+    const placeholder = document.getElementById('callPlaceholder');
+    const hasVideo = remoteStream?.getVideoTracks().some(track => track.readyState !== 'ended');
+    if (placeholder) placeholder.style.display = hasVideo ? 'none' : 'flex';
+}
+
+function getIceServers() {
+    if (Array.isArray(WEBRTC_ICE_SERVERS) && WEBRTC_ICE_SERVERS.length > 0) {
+        return WEBRTC_ICE_SERVERS;
+    }
+
+    return [
+        { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+    ];
+}
+
+async function ensureLocalStream() {
+    if (localStream) return localStream;
+    if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('Media devices are not available in this browser context.');
+    }
+
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    } catch (videoErr) {
+        console.warn('Video capture failed, trying audio only:', videoErr.message);
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    }
+
+    document.getElementById('localVideo').srcObject = localStream;
+    updateMediaButtons();
+    return localStream;
+}
+
+function createPeerConnection() {
+    if (peerConnection) return peerConnection;
+
+    remoteStream = new MediaStream();
+    document.getElementById('remoteVideo').srcObject = remoteStream;
+    updateRemoteVideoState();
+
+    peerConnection = new RTCPeerConnection({ iceServers: getIceServers() });
+
+    peerConnection.onicecandidate = (event) => {
+        if (!event.candidate) return;
+        sendSignal('ice-candidate', {
+            candidate: event.candidate.toJSON ? event.candidate.toJSON() : event.candidate,
+        }).catch(err => console.warn('ICE send error:', err.message));
+    };
+
+    peerConnection.ontrack = (event) => {
+        event.streams[0].getTracks().forEach(track => {
+            if (!remoteStream.getTracks().some(existing => existing.id === track.id)) {
+                remoteStream.addTrack(track);
+            }
+        });
+        setCallStatus('Connected');
+        updateRemoteVideoState();
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+        const state = peerConnection?.connectionState;
+        if (state === 'connected') setCallStatus('Connected');
+        if (state === 'connecting') setCallStatus('Connecting');
+        if (state === 'disconnected') setCallStatus('Reconnecting');
+        if (state === 'failed') setCallStatus('Connection failed');
+        if (state === 'closed') updateRemoteVideoState();
+    };
+
+    return peerConnection;
+}
+
+function addLocalTracks() {
+    if (!peerConnection || !localStream) return;
+    const existingSenders = peerConnection.getSenders().map(sender => sender.track?.id);
+    localStream.getTracks().forEach(track => {
+        if (!existingSenders.includes(track.id)) {
+            peerConnection.addTrack(track, localStream);
+        }
+    });
+}
+
+function normalizeSdp(sdp) {
+    if (typeof sdp !== 'string') {
+        throw new Error('Missing SDP text in WebRTC signal.');
+    }
+
+    const cleaned = sdp
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+        .replace(/\r\n|\r|\n/g, '\n')
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .join('\r\n');
+
+    return cleaned + '\r\n';
+}
+
+function serializeSessionDescription(description) {
+    const plain = typeof description?.toJSON === 'function'
+        ? description.toJSON()
+        : description;
+
+    if (!plain?.type || !plain?.sdp) {
+        throw new Error('Invalid local WebRTC description.');
+    }
+
+    return {
+        type: plain.type,
+        sdp: normalizeSdp(plain.sdp),
+    };
+}
+
+function getRemoteDescription(signal) {
+    const payload = signal?.payload || {};
+    const description = payload.description || payload.sdp || payload;
+    const type = description?.type || payload.type || (signal.type === 'offer' || signal.type === 'answer' ? signal.type : null);
+    const sdp = typeof description === 'string' ? description : description?.sdp;
+
+    if (!type || !sdp) {
+        throw new Error('Invalid remote WebRTC description.');
+    }
+
+    return new RTCSessionDescription({
+        type,
+        sdp: normalizeSdp(sdp),
+    });
+}
+
+async function sendSignal(type, payload = {}, convId = null) {
+    const targetConvId = convId || activeCallConvId || currentConvId;
+    if (!targetConvId) return;
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': CSRF,
+        'Accept': 'application/json',
+    };
+
+    const socketId = window.Echo?.socketId?.();
+    if (socketId) headers['X-Socket-ID'] = socketId;
+
+    const res = await fetch(`/chat/${targetConvId}/signal`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ type, payload }),
+    });
+
+    if (!res.ok) throw new Error(`Signal HTTP ${res.status}`);
+}
+
+async function startVideoCall() {
+    if (!currentConvId || !currentPeerId || peerConnection || pendingIncomingOffer) return;
+
+    activeCallConvId = currentConvId;
+    activeCallPeerId = currentPeerId;
+    activeCallPeerName = getActiveCallName();
+    activeCallPeerInitial = currentPeerInit || getInitialFromName(activeCallPeerName);
+    pendingIceCandidates = [];
+    callEnding = false;
+
+    showActiveCallOverlay('Starting call');
+
+    try {
+        await ensureLocalStream();
+        createPeerConnection();
+        addLocalTracks();
+
+        const offer = await peerConnection.createOffer({
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: true,
+        });
+        await peerConnection.setLocalDescription(offer);
+        await sendSignal('offer', { description: serializeSessionDescription(peerConnection.localDescription) });
+        setCallStatus('Ringing');
+    } catch (err) {
+        console.warn('Start call error:', err.message);
+        setCallStatus('Unable to start call');
+        setTimeout(() => endCall(false), 1000);
+    }
+}
+
+async function handleWebRTCSignal(signal) {
+    if (!signal || parseInt(signal.sender_id) === ME_ID) return;
+
+    try {
+        if (signal.type === 'offer') await handleIncomingOffer(signal);
+        if (signal.type === 'answer') await handleAnswer(signal);
+        if (signal.type === 'ice-candidate') await handleIceCandidate(signal);
+        if (signal.type === 'call-rejected') handleCallRejected(signal);
+        if (signal.type === 'call-ended') handleRemoteCallEnded(signal);
+    } catch (err) {
+        console.warn('WebRTC signal error:', err.message);
+        setCallStatus('Call error');
+    }
+}
+
+async function handleIncomingOffer(signal) {
+    const convId = parseInt(signal.conversation_id);
+
+    if (peerConnection || activeCallConvId || pendingIncomingOffer) {
+        await sendSignal('call-rejected', { reason: 'busy' }, convId).catch(() => {});
+        return;
+    }
+
+    pendingIncomingOffer = signal;
+    pendingIceCandidates = [];
+    activeCallPeerId = parseInt(signal.sender_id);
+    activeCallPeerName = signal.sender_name || 'Contact';
+    activeCallPeerInitial = getInitialFromName(activeCallPeerName);
+    showIncomingCallOverlay(signal);
+}
+
+async function acceptIncomingCall() {
+    if (!pendingIncomingOffer) return;
+
+    const signal = pendingIncomingOffer;
+    const convId = parseInt(signal.conversation_id);
+    activeCallConvId = convId;
+    activeCallPeerId = parseInt(signal.sender_id);
+    activeCallPeerName = signal.sender_name || 'Contact';
+    activeCallPeerInitial = getInitialFromName(activeCallPeerName);
+    pendingIncomingOffer = null;
+    callEnding = false;
+
+    showActiveCallOverlay('Connecting');
+
+    try {
+        await ensureLocalStream();
+        createPeerConnection();
+        addLocalTracks();
+        await peerConnection.setRemoteDescription(getRemoteDescription(signal));
+        await flushPendingIceCandidates();
+
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        await sendSignal('answer', { description: serializeSessionDescription(peerConnection.localDescription) }, convId);
+        setCallStatus('Connecting');
+    } catch (err) {
+        console.warn('Accept call error:', err.message);
+        setCallStatus('Unable to answer call');
+        await sendSignal('call-ended', { reason: 'answer-failed' }, convId).catch(() => {});
+        setTimeout(() => endCall(false), 1000);
+    }
+}
+
+function rejectIncomingCall() {
+    const convId = pendingIncomingOffer ? parseInt(pendingIncomingOffer.conversation_id) : activeCallConvId;
+    if (convId) {
+        sendSignal('call-rejected', { reason: 'declined' }, convId).catch(() => {});
+    }
+    cleanupCall();
+}
+
+async function handleAnswer(signal) {
+    const convId = parseInt(signal.conversation_id);
+    if (!peerConnection || convId !== activeCallConvId) return;
+    await peerConnection.setRemoteDescription(getRemoteDescription(signal));
+    await flushPendingIceCandidates();
+    setCallStatus('Connecting');
+}
+
+async function handleIceCandidate(signal) {
+    const convId = parseInt(signal.conversation_id);
+    const candidate = signal.payload?.candidate;
+    if (!candidate) return;
+
+    const isActiveCall = convId === activeCallConvId;
+    const isPendingCall = pendingIncomingOffer && convId === parseInt(pendingIncomingOffer.conversation_id);
+    if (!isActiveCall && !isPendingCall) return;
+
+    if (!peerConnection || !peerConnection.remoteDescription?.type) {
+        pendingIceCandidates.push(candidate);
+        return;
+    }
+
+    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+}
+
+async function flushPendingIceCandidates() {
+    if (!peerConnection || !peerConnection.remoteDescription?.type) return;
+
+    while (pendingIceCandidates.length > 0) {
+        const candidate = pendingIceCandidates.shift();
+        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)).catch(err => {
+            console.warn('ICE add error:', err.message);
+        });
+    }
+}
+
+function handleCallRejected(signal) {
+    const convId = parseInt(signal.conversation_id);
+    if (convId !== activeCallConvId) return;
+
+    const reason = signal.payload?.reason;
+    setCallStatus(reason === 'busy' ? 'User is busy' : 'Call declined');
+    setTimeout(() => endCall(false), 1000);
+}
+
+function handleRemoteCallEnded(signal) {
+    const convId = parseInt(signal.conversation_id);
+    const pendingConvId = pendingIncomingOffer ? parseInt(pendingIncomingOffer.conversation_id) : null;
+    if (convId !== activeCallConvId && convId !== pendingConvId) return;
+
+    setCallStatus('Call ended');
+    setTimeout(() => cleanupCall(), 700);
+}
+
+function endCall(notifyPeer = false) {
+    const convId = activeCallConvId || (pendingIncomingOffer ? parseInt(pendingIncomingOffer.conversation_id) : null);
+    if (notifyPeer && convId && !callEnding) {
+        sendSignal('call-ended', {}, convId).catch(() => {});
+    }
+    cleanupCall();
+}
+
+function cleanupCall() {
+    callEnding = true;
+
+    if (peerConnection) {
+        peerConnection.onicecandidate = null;
+        peerConnection.ontrack = null;
+        peerConnection.onconnectionstatechange = null;
+        peerConnection.close();
+    }
+
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+    }
+
+    if (remoteStream) {
+        remoteStream.getTracks().forEach(track => track.stop());
+    }
+
+    document.getElementById('localVideo').srcObject = null;
+    document.getElementById('remoteVideo').srcObject = null;
+    hideCallOverlay();
+
+    peerConnection = null;
+    localStream = null;
+    remoteStream = null;
+    activeCallConvId = null;
+    activeCallPeerId = null;
+    activeCallPeerName = '';
+    activeCallPeerInitial = '?';
+    pendingIncomingOffer = null;
+    pendingIceCandidates = [];
+    callEnding = false;
+    updateRemoteVideoState();
+    updateMediaButtons();
+    setCallActionDisabled(false);
+}
+
+function updateMediaButtons() {
+    const micBtn = document.getElementById('toggleMicBtn');
+    const camBtn = document.getElementById('toggleCameraBtn');
+    const audioTrack = localStream?.getAudioTracks()[0] || null;
+    const videoTrack = localStream?.getVideoTracks()[0] || null;
+
+    if (micBtn) {
+        micBtn.disabled = !audioTrack;
+        micBtn.classList.toggle('off', !!audioTrack && !audioTrack.enabled);
+        micBtn.querySelector('i').className = audioTrack && audioTrack.enabled ? 'fas fa-microphone' : 'fas fa-microphone-slash';
+    }
+
+    if (camBtn) {
+        camBtn.disabled = !videoTrack;
+        camBtn.classList.toggle('off', !!videoTrack && !videoTrack.enabled);
+        camBtn.querySelector('i').className = videoTrack && videoTrack.enabled ? 'fas fa-video' : 'fas fa-video-slash';
+    }
+}
+
+function toggleMic() {
+    localStream?.getAudioTracks().forEach(track => {
+        track.enabled = !track.enabled;
+    });
+    updateMediaButtons();
+}
+
+function toggleCamera() {
+    localStream?.getVideoTracks().forEach(track => {
+        track.enabled = !track.enabled;
+    });
+    updateMediaButtons();
+}
+
 // ── Typing ─────────────────────────────────────────────────────
 function notifyTyping() {
     if (!currentConvId) return;
@@ -872,7 +1422,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Stop heartbeat when user leaves page
-window.addEventListener('beforeunload', stopHeartbeat);
+// Stop realtime helpers when user leaves page
+window.addEventListener('beforeunload', () => {
+    endCall(true);
+    stopHeartbeat();
+});
 </script>
 @endpush

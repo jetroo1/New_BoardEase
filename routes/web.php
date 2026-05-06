@@ -27,7 +27,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // ── Authenticated (all roles) ─────────────────────────────────────────────────
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'no_cache'])->group(function () {
 
     Route::get('/', fn() => redirect()->route('dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

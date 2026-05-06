@@ -306,7 +306,8 @@ class ChatController extends Controller
     public function signal(Request $request, $conversationId)
     {
         $request->validate([
-            'type' => 'required|string|in:offer,answer,ice-candidate,call-rejected,call-ended',
+            'type'    => 'required|string|in:offer,answer,ice-candidate,call-rejected,call-ended',
+            'payload' => 'nullable|array',
         ]);
 
         $user = Auth::user();
@@ -316,15 +317,12 @@ class ChatController extends Controller
         $recipient = $conv->getOtherParticipant($user->id);
 
         $payload = $request->input('payload', []);
-        if (!is_array($payload)) {
-            $payload = (array) $payload;
-        }
 
         broadcast(new WebRTCSignal(
             recipientId:    $recipient->id,
             senderId:       $user->id,
             senderName:     $user->name,
-            type:           $request->type,
+            type:           $request->input('type'),
             payload:        $payload,
             conversationId: $conv->id,
         ))->toOthers();
