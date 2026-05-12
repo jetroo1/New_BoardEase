@@ -11,6 +11,7 @@ use App\Events\MessageRead;
 use App\Events\UserTyping;
 use App\Events\UserOnlineStatus;
 use App\Events\WebRTCSignal;
+use App\Notifications\NewMessageNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -246,6 +247,10 @@ class ChatController extends Controller
             imageUrl:       $message->image_url,   // ← FIX: pass image URL to receiver
             avatarUrl:      $user->avatar_url, 
         ))->toOthers();
+
+        if ($recipient->wantsNotification('new_messages')) {
+            $recipient->notify(new NewMessageNotification($message, $conv, $user));
+        }
 
         return response()->json([
             'id'        => $message->id,

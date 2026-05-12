@@ -9,8 +9,10 @@ class SearchController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Property::query();
-        $query = Property::query()->where('is_approved', true);
+        $query = Property::query()
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->where('is_approved', true);
 
         // Keyword search
         if ($request->filled('q')) {
@@ -54,8 +56,11 @@ class SearchController extends Controller
         $q = $request->get('q', '');
         if (strlen($q) < 2) return response()->json([]);
 
-        $results = Property::where('title', 'like', '%' . $q . '%')
-            ->orWhere('address', 'like', '%' . $q . '%')
+        $results = Property::where('is_approved', true)
+            ->where(function ($query) use ($q) {
+                $query->where('title', 'like', '%' . $q . '%')
+                    ->orWhere('address', 'like', '%' . $q . '%');
+            })
             ->limit(6)
             ->get(['id', 'title', 'address', 'price', 'room_type', 'image']);
         return response()->json($results);

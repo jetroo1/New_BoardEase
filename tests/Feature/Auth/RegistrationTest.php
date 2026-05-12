@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,9 +24,22 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'role' => 'tenant',
+        ]);
+
+        $response->assertRedirect(route('verification.code', absolute: false));
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'test@example.com']);
+
+        $code = session('email_verification_code.testing_code');
+        $this->assertNotEmpty($code);
+
+        $response = $this->post('/email/verify-code', [
+            'code' => $code,
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect('/search');
+        $this->assertTrue(User::where('email', 'test@example.com')->first()->hasVerifiedEmail());
     }
 }

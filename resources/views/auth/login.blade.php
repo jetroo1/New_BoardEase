@@ -9,13 +9,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
         :root {
-            --navy: #1a2340;
-            --navy-light: #243050;
-            --teal: #2ec4a5;
-            --orange: #e8692a;
-            --bg: #f0f4f8;
-            --border: #e2e8f0;
-            --text: #1e293b;
+            --navy: #0f3f5f;
+            --navy-light: #075985;
+            --teal: #06b6d4;
+            --orange: #38bdf8;
+            --bg: #edfaff;
+            --border: rgba(125, 211, 252, 0.34);
+            --text: #0f2741;
             --text-muted: #64748b;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -23,11 +23,13 @@
             font-family: 'DM Sans', sans-serif;
             min-height: 100vh;
             display: flex;
-            background: var(--navy);
+            background: linear-gradient(135deg, #082f49 0%, #0e7490 46%, #e0f7ff 100%);
         }
         .auth-left {
             flex: 0 0 48%;
-            background: var(--navy);
+            background:
+                linear-gradient(135deg, rgba(8,47,73,0.98), rgba(8,145,178,0.88)),
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 34px);
             padding: 52px 56px;
             display: flex;
             flex-direction: column;
@@ -39,16 +41,16 @@
             content: '';
             position: absolute;
             width: 400px; height: 400px;
-            background: rgba(46,196,165,0.06);
-            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.13), transparent);
+            border-radius: 18px;
             top: -80px; right: -80px;
         }
         .auth-left::after {
             content: '';
             position: absolute;
             width: 300px; height: 300px;
-            background: rgba(46,196,165,0.04);
-            border-radius: 50%;
+            background: repeating-linear-gradient(135deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 16px);
+            border-radius: 18px;
             bottom: -60px; left: -60px;
         }
         .logo-wrap {
@@ -59,7 +61,7 @@
         }
         .logo-icon {
             width: 52px; height: 52px;
-            background: var(--teal);
+            background: linear-gradient(135deg, #22d3ee, #0284c7);
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.4rem;
@@ -118,19 +120,24 @@
         .feature-text { font-size: 0.9rem; color: rgba(255,255,255,0.75); }
         .auth-right {
             flex: 1;
-            background: #f5f7fa;
+            background:
+                linear-gradient(135deg, rgba(248,253,255,0.94), rgba(237,250,255,0.92)),
+                linear-gradient(rgba(14,165,233,0.05) 1px, transparent 1px);
+            background-size: auto, 42px 42px;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 40px 32px;
         }
         .auth-card {
-            background: #fff;
+            background: rgba(255,255,255,0.78);
             border-radius: 18px;
             padding: 40px 36px;
             width: 100%;
             max-width: 420px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            border: 1px solid rgba(125, 211, 252, 0.35);
+            box-shadow: 0 22px 60px rgba(14, 116, 144, 0.16);
+            backdrop-filter: blur(18px);
         }
         .auth-card h2 {
             font-family: 'Syne', sans-serif;
@@ -145,7 +152,7 @@
         }
         .auth-tabs {
             display: flex;
-            background: #f1f5f9;
+            background: rgba(224, 247, 255, 0.72);
             border-radius: 10px;
             padding: 4px;
             margin-bottom: 28px;
@@ -193,7 +200,7 @@
             font-family: 'DM Sans', sans-serif;
             font-size: 0.9rem;
             color: var(--text);
-            background: #f8fafc;
+            background: rgba(255,255,255,0.74);
             outline: none;
             transition: border-color 0.2s;
         }
@@ -219,17 +226,17 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
-            background: #f8fafc;
+            background: rgba(255,255,255,0.72);
         }
-        .role-btn.selected { border-color: var(--navy); background: #fff; }
+        .role-btn.selected { border-color: var(--teal); background: rgba(224, 247, 255, 0.82); }
         .role-btn i { display: block; font-size: 1.3rem; margin-bottom: 6px; color: var(--text-muted); }
-        .role-btn.selected i { color: var(--navy); }
+        .role-btn.selected i { color: var(--teal); }
         .role-btn strong { display: block; font-size: 0.85rem; color: var(--text); }
         .role-btn span { font-size: 0.75rem; color: var(--text-muted); }
         .btn-submit {
             width: 100%;
             padding: 13px;
-            background: var(--navy);
+            background: linear-gradient(135deg, var(--navy-light), var(--teal));
             color: #fff;
             border: none;
             border-radius: 10px;
@@ -237,10 +244,10 @@
             font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
             margin-bottom: 16px;
         }
-        .btn-submit:hover { background: var(--navy-light); }
+        .btn-submit:hover { background: linear-gradient(135deg, var(--navy), var(--teal)); transform: translateY(-1px); box-shadow: 0 12px 28px rgba(14, 165, 233, 0.2); }
         .divider {
             display: flex;
             align-items: center;
@@ -333,6 +340,9 @@
         }
     </style>
 </head>
+@php
+    $activeForm = old('_form', $defaultForm ?? 'login');
+@endphp
 <body>
 
 <div class="auth-left">
@@ -375,9 +385,15 @@
         <p>Sign in or create your account to continue</p>
 
         <div class="auth-tabs">
-            <button class="auth-tab {{ old('_form', 'login') != 'register' ? 'active' : '' }}" id="tab-btn-login" onclick="switchTab('login', this)">Sign In</button>
-            <button class="auth-tab {{ old('_form') == 'register' ? 'active' : '' }}" id="tab-btn-register" onclick="switchTab('register', this)">Register</button>
+            <button class="auth-tab {{ $activeForm !== 'register' ? 'active' : '' }}" id="tab-btn-login" onclick="switchTab('login', this)">Sign In</button>
+            <button class="auth-tab {{ $activeForm === 'register' ? 'active' : '' }}" id="tab-btn-register" onclick="switchTab('register', this)">Register</button>
         </div>
+
+        @if(session('status'))
+            <div class="info-msg">
+                <i class="fas fa-info-circle"></i> {{ session('status') }}
+            </div>
+        @endif
 
         {{-- CANCELLED / INFO MESSAGE --}}
         @if(session('social_cancelled'))
@@ -389,7 +405,7 @@
         {{-- ======================================================= --}}
         {{-- LOGIN PANEL                                              --}}
         {{-- ======================================================= --}}
-        <div class="tab-panel {{ old('_form', 'login') != 'register' ? 'active' : '' }}" id="tab-login">
+        <div class="tab-panel {{ $activeForm !== 'register' ? 'active' : '' }}" id="tab-login">
             <form method="POST" action="{{ route('login') }}">
                 @csrf
                 <input type="hidden" name="_form" value="login">
@@ -450,7 +466,7 @@
         {{-- ======================================================= --}}
         {{-- REGISTER PANEL                                           --}}
         {{-- ======================================================= --}}
-        <div class="tab-panel {{ old('_form') == 'register' ? 'active' : '' }}" id="tab-register">
+        <div class="tab-panel {{ $activeForm === 'register' ? 'active' : '' }}" id="tab-register">
             <form method="POST" action="{{ route('register') }}">
                 @csrf
                 <input type="hidden" name="_form" value="register">
@@ -526,7 +542,7 @@
             <div class="divider">or</div>
 
             {{-- Google Register --}}
-            <a href="{{ route('auth.google') }}" class="btn-google">
+            <a href="{{ route('auth.google.register') }}" class="btn-google">
                 <svg width="18" height="18" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                     <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>

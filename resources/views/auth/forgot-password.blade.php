@@ -8,12 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
         :root {
-            --navy: #1a2340;
-            --navy-light: #243050;
-            --teal: #2ec4a5;
-            --orange: #e8692a;
-            --border: #e2e8f0;
-            --text: #1e293b;
+            --navy: #0f3f5f;
+            --navy-light: #075985;
+            --teal: #06b6d4;
+            --orange: #38bdf8;
+            --border: rgba(125, 211, 252, 0.34);
+            --text: #0f2741;
             --text-muted: #64748b;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -21,11 +21,13 @@
             font-family: 'DM Sans', sans-serif;
             min-height: 100vh;
             display: flex;
-            background: var(--navy);
+            background: linear-gradient(135deg, #082f49 0%, #0e7490 46%, #e0f7ff 100%);
         }
         .auth-left {
             flex: 0 0 48%;
-            background: var(--navy);
+            background:
+                linear-gradient(135deg, rgba(8,47,73,0.98), rgba(8,145,178,0.88)),
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 34px);
             padding: 52px 56px;
             display: flex;
             flex-direction: column;
@@ -37,16 +39,16 @@
             content: '';
             position: absolute;
             width: 400px; height: 400px;
-            background: rgba(46,196,165,0.06);
-            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.13), transparent);
+            border-radius: 18px;
             top: -80px; right: -80px;
         }
         .auth-left::after {
             content: '';
             position: absolute;
             width: 300px; height: 300px;
-            background: rgba(46,196,165,0.04);
-            border-radius: 50%;
+            background: repeating-linear-gradient(135deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 16px);
+            border-radius: 18px;
             bottom: -60px; left: -60px;
         }
         .logo-wrap {
@@ -57,7 +59,7 @@
         }
         .logo-icon {
             width: 52px; height: 52px;
-            background: var(--teal);
+            background: linear-gradient(135deg, #22d3ee, #0284c7);
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.4rem; color: #fff;
@@ -83,14 +85,20 @@
             line-height: 1.6; margin-bottom: 44px; max-width: 360px;
         }
         .auth-right {
-            flex: 1; background: #f5f7fa;
+            flex: 1;
+            background:
+                linear-gradient(135deg, rgba(248,253,255,0.94), rgba(237,250,255,0.92)),
+                linear-gradient(rgba(14,165,233,0.05) 1px, transparent 1px);
+            background-size: auto, 42px 42px;
             display: flex; align-items: center;
             justify-content: center; padding: 40px 32px;
         }
         .auth-card {
-            background: #fff; border-radius: 18px;
+            background: rgba(255,255,255,0.78); border-radius: 18px;
             padding: 40px 36px; width: 100%; max-width: 420px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            border: 1px solid rgba(125, 211, 252, 0.35);
+            box-shadow: 0 22px 60px rgba(14, 116, 144, 0.16);
+            backdrop-filter: blur(18px);
         }
         .back-link {
             display: inline-flex; align-items: center; gap: 6px;
@@ -101,7 +109,7 @@
         .back-link:hover { color: var(--teal); }
         .icon-wrap {
             width: 56px; height: 56px;
-            background: #f0fdf4; border-radius: 14px;
+            background: rgba(224, 247, 255, 0.82); border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.5rem; color: var(--teal); margin-bottom: 20px;
         }
@@ -127,19 +135,19 @@
             width: 100%; padding: 11px 14px 11px 38px;
             border: 1.5px solid var(--border); border-radius: 10px;
             font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
-            color: var(--text); background: #f8fafc; outline: none;
+            color: var(--text); background: rgba(255,255,255,0.74); outline: none;
             transition: border-color 0.2s;
         }
         .form-input:focus { border-color: var(--teal); background: #fff; }
         .btn-submit {
             width: 100%; padding: 13px;
-            background: var(--navy); color: #fff;
+            background: linear-gradient(135deg, var(--navy-light), var(--teal)); color: #fff;
             border: none; border-radius: 10px;
             font-family: 'DM Sans', sans-serif;
             font-size: 0.95rem; font-weight: 700;
             cursor: pointer; transition: background 0.2s; margin-bottom: 16px;
         }
-        .btn-submit:hover { background: var(--navy-light); }
+        .btn-submit:hover { background: linear-gradient(135deg, var(--navy), var(--teal)); }
         .success-msg {
             color: #16a34a; font-size: 0.83rem; margin-bottom: 12px;
             display: flex; align-items: center; gap: 6px;
@@ -190,7 +198,7 @@
             </div>
         @endif
 
-        <form method="POST" action="#" onsubmit="handleSubmit(event)">
+        <form method="POST" action="{{ route('password.email') }}">
             @csrf
             <div class="form-group">
                 <label class="form-label">Email Address</label>
@@ -202,11 +210,13 @@
                 </div>
             </div>
 
-            <div id="successBanner" style="display:none;" class="success-msg">
-                <i class="fas fa-check-circle"></i> Password reset link sent! Check your email.
-            </div>
+            @error('email')
+                <div class="success-msg" style="background:#fef2f2;border-color:#fecaca;color:#ef4444">
+                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                </div>
+            @enderror
 
-            <button type="submit" class="btn-submit" id="submitBtn">
+            <button type="submit" class="btn-submit">
                 <i class="fas fa-paper-plane"></i> Send Reset Link
             </button>
         </form>
@@ -216,26 +226,6 @@
         </div>
     </div>
 </div>
-
-<script>
-function handleSubmit(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    const banner = document.getElementById('successBanner');
-    const email = e.target.email.value;
-
-    if (!email) return;
-
-    btn.textContent = 'Sending...';
-    btn.disabled = true;
-
-    setTimeout(() => {
-        banner.style.display = 'flex';
-        btn.textContent = 'Link Sent!';
-        btn.style.background = '#16a34a';
-    }, 1500);
-}
-</script>
 
 </body>
 </html>

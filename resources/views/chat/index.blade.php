@@ -174,6 +174,27 @@
     border-radius: 50%;
     display: block;
 }
+    .conv-item { border:1px solid transparent;border-radius:8px; }
+    .conv-item.active {
+        border-color:color-mix(in srgb, var(--teal) 34%, transparent);
+        background:color-mix(in srgb, var(--teal) 9%, var(--card));
+    }
+    .chat-topbar { min-height:68px; }
+    .msg-group.sent .msg-bubble { background:linear-gradient(135deg, var(--navy), var(--navy-light)); }
+    .msg-group:not(.sent) .msg-bubble { border:1px solid color-mix(in srgb, var(--border) 74%, transparent); }
+    .chat-input-area { box-shadow:0 -12px 30px rgba(15,23,42,0.04); }
+    @media (max-width: 920px) {
+        .conversations-panel { width:260px; }
+        .msg-group { max-width:82%; }
+    }
+    @media (max-width: 720px) {
+        .page-content { height:auto;min-height:calc(100vh - 64px); }
+        .chat-layout { flex-direction:column;min-height:calc(100vh - 64px); }
+        .conversations-panel { width:100%;height:36vh;border-right:0;border-bottom:1px solid var(--border); }
+        .chat-window { min-height:58vh; }
+        .messages-area { padding:14px; }
+        .msg-group { max-width:92%; }
+    }
 </style>
 @endpush
 

@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmailContract
 {
-    use HasFactory, Notifiable;
+    use HasFactory, MustVerifyEmailTrait, Notifiable;
 
     protected $appends = ['avatar_url'];
 
@@ -17,6 +19,7 @@ class User extends Authenticatable
         'google_id', 'facebook_id', 'avatar',
         'phone', 'profile_photo', 'theme',
         'notification_preferences', 'app_preferences', 'last_seen_at',
+        'email_verified_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -59,6 +62,17 @@ class User extends Authenticatable
     public function isAdmin(): bool  { return $this->role === 'admin'; }
     public function isOwner(): bool  { return $this->role === 'owner'; }
     public function isTenant(): bool { return $this->role === 'tenant'; }
+
+    public function wantsNotification(string $key): bool
+    {
+        $preferences = $this->notification_preferences ?? [];
+
+        if (! is_array($preferences) || ! array_key_exists($key, $preferences)) {
+            return true;
+        }
+
+        return (bool) $preferences[$key];
+    }
 
     public function redirectPath(): string
     {

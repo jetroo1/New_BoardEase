@@ -5,118 +5,234 @@
 
 @push('styles')
 <style>
-    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-    .page-header h1 { font-family: 'Syne', sans-serif; font-size: 1.75rem; font-weight: 700; }
-    .page-header p { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
-
-    .notif-tabs { display: flex; gap: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 20px; width: fit-content; }
-    .notif-tab { padding: 8px 18px; border: none; background: transparent; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
-    .notif-tab.active { background: var(--navy); color: #fff; }
-
-    .notif-group-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 10px; }
-
-    .notif-item { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; cursor: pointer; transition: box-shadow 0.2s; position: relative; }
-    .notif-item:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
-    .notif-item.unread { border-left: 3px solid var(--teal); background: color-mix(in srgb, var(--teal) 8%, var(--card)); }
-    .notif-item.unread::after { content: ''; position: absolute; top: 14px; right: 14px; width: 8px; height: 8px; background: var(--teal); border-radius: 50%; }
-
-    .notif-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
-    .notif-icon.booking { background: color-mix(in srgb, var(--blue-accent) 12%, var(--card)); color: var(--blue-accent); }
-    .notif-icon.payment { background: color-mix(in srgb, var(--green) 12%, var(--card)); color: var(--green); }
-    .notif-icon.message { background: color-mix(in srgb, var(--purple) 12%, var(--card)); color: var(--purple); }
-    .notif-icon.reminder { background: color-mix(in srgb, var(--orange) 12%, var(--card)); color: var(--orange); }
-    .notif-icon.system { background: color-mix(in srgb, var(--text-muted) 12%, var(--card)); color: var(--text-muted); }
-
-    .notif-body { flex: 1; }
-    .notif-title { font-size: 0.875rem; font-weight: 700; margin-bottom: 3px; }
-    .notif-text { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
-    .notif-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
-
-    .mark-all { font-size: 0.82rem; color: var(--teal); font-weight: 600; cursor: pointer; border: none; background: none; }
+    .notifications-page {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+    .notifications-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 22px;
+    }
+    .notifications-header h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: 0;
+    }
+    .notifications-header p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+    .notifications-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 18px;
+    }
+    .notifications-tab {
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.72);
+        color: var(--text-muted);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font: 800 0.82rem 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: all 0.18s ease;
+    }
+    .notifications-tab.active,
+    .notifications-tab:hover {
+        border-color: rgba(6, 182, 212, 0.38);
+        background: rgba(6, 182, 212, 0.14);
+        color: #0284c7;
+    }
+    .notifications-card {
+        background: var(--glass-card);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: var(--glass-shadow);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+    }
+    .notifications-row {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+        text-decoration: none;
+        color: var(--text);
+        transition: background 0.18s ease, transform 0.18s ease;
+        cursor: pointer;
+    }
+    .notifications-row:last-child { border-bottom: none; }
+    .notifications-row:hover {
+        background: rgba(14, 165, 233, 0.08);
+    }
+    .notifications-row.unread {
+        background: rgba(6, 182, 212, 0.10);
+    }
+    .notifications-row-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        color: #0284c7;
+        background: rgba(14, 165, 233, 0.13);
+    }
+    .notifications-row-icon.booking { color: #0ea5e9; background: rgba(14, 165, 233, 0.14); }
+    .notifications-row-icon.message { color: #06b6d4; background: rgba(6, 182, 212, 0.14); }
+    .notifications-row-icon.property { color: #0891b2; background: rgba(8, 145, 178, 0.14); }
+    .notifications-row-icon.review { color: #f59e0b; background: rgba(245, 158, 11, 0.14); }
+    .notifications-row-icon.payment { color: #16a34a; background: rgba(34, 197, 94, 0.14); }
+    .notifications-row-icon.system { color: #64748b; background: rgba(100, 116, 139, 0.13); }
+    .notifications-row-main { min-width: 0; flex: 1; }
+    .notifications-row-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: flex-start;
+    }
+    .notifications-row-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+    }
+    .notifications-row-message {
+        color: var(--text-muted);
+        font-size: 0.86rem;
+        line-height: 1.5;
+        margin-top: 4px;
+    }
+    .notifications-row-time {
+        color: #0284c7;
+        font-size: 0.76rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+    .notifications-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--teal);
+        margin-top: 5px;
+        flex-shrink: 0;
+    }
+    .notifications-empty {
+        padding: 54px 20px;
+        text-align: center;
+        color: var(--text-muted);
+    }
+    .notifications-empty i {
+        font-size: 2rem;
+        color: #38bdf8;
+        margin-bottom: 12px;
+    }
+    @media (max-width: 700px) {
+        .notifications-header { flex-direction: column; }
+        .notifications-row-top { flex-direction: column; gap: 4px; }
+        .notifications-row-time { white-space: normal; }
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="page-header">
-    <div>
-        <h1>Notifications</h1>
-        <p>Stay updated on your bookings and messages</p>
-    </div>
-    <button class="mark-all" onclick="markAllRead()"><i class="fas fa-check-double"></i> Mark all as read</button>
-</div>
+@php
+    $categoryCounts = collect($notifications)->groupBy('category')->map->count();
+@endphp
 
-<div class="notif-tabs">
-    <button class="notif-tab active" onclick="switchTab(this,'all')">All</button>
-    <button class="notif-tab" onclick="switchTab(this,'bookings')">Bookings</button>
-    <button class="notif-tab" onclick="switchTab(this,'messages')">Messages</button>
-    <button class="notif-tab" onclick="switchTab(this,'system')">System</button>
-</div>
-
-<div id="notifList">
-    <div class="notif-group-label">Today</div>
-
-    @php
-    $notifs = [
-        ['type'=>'booking','icon'=>'fas fa-calendar-check','class'=>'booking','title'=>'Booking Confirmed!','text'=>'Your booking for Lola Doth\'s BH – Solo Room has been confirmed. Check-in: March 14, 2026.','time'=>'2 minutes ago','unread'=>true,'cat'=>'bookings'],
-        ['type'=>'message','icon'=>'fas fa-comment-dots','class'=>'message','title'=>'New Message from Admin Support','text'=>'Your booking has been confirmed! ✓ Feel free to contact us if you have questions.','time'=>'5 minutes ago','unread'=>true,'cat'=>'messages'],
-        ['type'=>'reminder','icon'=>'fas fa-clock','class'=>'reminder','title'=>'Move-out Reminder','text'=>'Your contract at M. Dormitory (Double Deck) ends in 30 days on June 2, 2025. Please plan your move accordingly.','time'=>'1 hour ago','unread'=>false,'cat'=>'bookings'],
-        ['type'=>'payment','icon'=>'fas fa-receipt','class'=>'payment','title'=>'Payment Received','text'=>'₱1,900 monthly rent for Lola Doth\'s BH has been processed successfully for April 2026.','time'=>'3 hours ago','unread'=>false,'cat'=>'system'],
-    ];
-    @endphp
-
-    @foreach($notifs as $n)
-    <div class="notif-item {{ $n['unread'] ? 'unread' : '' }}" data-cat="{{ $n['cat'] }}" onclick="this.classList.remove('unread')">
-        <div class="notif-icon {{ $n['class'] }}"><i class="{{ $n['icon'] }}"></i></div>
-        <div class="notif-body">
-            <div class="notif-title">{{ $n['title'] }}</div>
-            <div class="notif-text">{{ $n['text'] }}</div>
-            <div class="notif-time"><i class="fas fa-clock" style="font-size:0.7rem"></i> {{ $n['time'] }}</div>
+<div class="notifications-page">
+    <div class="notifications-header">
+        <div>
+            <h1>Notifications</h1>
+            <p>Messages, bookings, reviews, listing updates, and system announcements in one place.</p>
         </div>
+        <button class="btn btn-primary" id="pageMarkAllRead">
+            <i class="fas fa-check-double"></i> Mark all as read
+        </button>
     </div>
-    @endforeach
 
-    <div class="notif-group-label">Yesterday</div>
-
-    @php
-    $older = [
-        ['icon'=>'fas fa-star','class'=>'system','title'=>'Review Reminder','text'=>'You stayed at Lawas Boarding House. Share your experience to help other renters!','time'=>'Yesterday, 8:00 PM','cat'=>'system'],
-        ['icon'=>'fas fa-home','class'=>'booking','title'=>'New Listing Near You','text'=>'A new boarding house "Green Ridge BH" opened 300m from UM Tagum. Starting at ₱2,200/mo.','time'=>'Yesterday, 2:15 PM','cat'=>'bookings'],
-        ['icon'=>'fas fa-shield-alt','class'=>'system','title'=>'Account Verified','text'=>'Your BoardEase account has been successfully verified. You can now make reservations.','time'=>'Yesterday, 10:00 AM','cat'=>'system'],
-    ];
-    @endphp
-
-    @foreach($older as $n)
-    <div class="notif-item" data-cat="{{ $n['cat'] }}" onclick="">
-        <div class="notif-icon {{ $n['class'] }}"><i class="{{ $n['icon'] }}"></i></div>
-        <div class="notif-body">
-            <div class="notif-title">{{ $n['title'] }}</div>
-            <div class="notif-text">{{ $n['text'] }}</div>
-            <div class="notif-time"><i class="fas fa-clock" style="font-size:0.7rem"></i> {{ $n['time'] }}</div>
-        </div>
+    <div class="notifications-tabs">
+        <button class="notifications-tab active" data-filter="all">All <span>({{ count($notifications) }})</span></button>
+        <button class="notifications-tab" data-filter="messages">Messages <span>({{ $categoryCounts['messages'] ?? 0 }})</span></button>
+        <button class="notifications-tab" data-filter="bookings">Bookings <span>({{ $categoryCounts['bookings'] ?? 0 }})</span></button>
+        <button class="notifications-tab" data-filter="properties">Properties <span>({{ $categoryCounts['properties'] ?? 0 }})</span></button>
+        <button class="notifications-tab" data-filter="system">System <span>({{ $categoryCounts['system'] ?? 0 }})</span></button>
     </div>
-    @endforeach
+
+    <div class="notifications-card" id="pageNotificationList">
+        @forelse($notifications as $notification)
+            <div
+                class="notifications-row {{ $notification['unread'] ? 'unread' : '' }}"
+                data-id="{{ $notification['id'] }}"
+                data-category="{{ $notification['category'] }}"
+                data-url="{{ $notification['action_url'] }}"
+            >
+                <div class="notifications-row-icon {{ $notification['tone'] }}">
+                    <i class="{{ $notification['icon'] }}"></i>
+                </div>
+                <div class="notifications-row-main">
+                    <div class="notifications-row-top">
+                        <div style="display:flex;gap:10px;align-items:flex-start;">
+                            <div>
+                                <div class="notifications-row-title">{{ $notification['title'] }}</div>
+                                <div class="notifications-row-message">{{ $notification['message'] }}</div>
+                            </div>
+                            @if($notification['unread'])
+                                <span class="notifications-dot"></span>
+                            @endif
+                        </div>
+                        <div class="notifications-row-time">
+                            <i class="fas fa-clock" style="font-size:0.68rem;margin-right:4px;"></i>{{ $notification['time_ago'] }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="notifications-empty">
+                <i class="fas fa-bell-slash"></i>
+                <div style="font-weight:800;color:var(--text);margin-bottom:4px;">No notifications yet</div>
+                <div>You will see messages, booking updates, and property alerts here.</div>
+            </div>
+        @endforelse
+    </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-function switchTab(btn, cat) {
-    document.querySelectorAll('.notif-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.notif-item').forEach(item => {
-        if (cat === 'all' || item.dataset.cat === cat) {
-            item.style.display = 'flex';
+document.querySelectorAll('.notifications-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.notifications-tab').forEach(item => item.classList.remove('active'));
+        this.classList.add('active');
+
+        const filter = this.dataset.filter;
+        document.querySelectorAll('.notifications-row').forEach(row => {
+            row.style.display = filter === 'all' || row.dataset.category === filter ? 'flex' : 'none';
+        });
+    });
+});
+
+document.querySelectorAll('.notifications-row').forEach(row => {
+    row.addEventListener('click', function() {
+        if (typeof markNotificationRead === 'function') {
+            markNotificationRead(this.dataset.id, this.dataset.url);
         } else {
-            item.style.display = 'none';
+            window.location.href = this.dataset.url;
         }
     });
-}
+});
 
-function markAllRead() {
-    document.querySelectorAll('.notif-item.unread').forEach(i => i.classList.remove('unread'));
-    // Update the topbar badge
-    const badge = document.querySelector('.notif-badge');
-    if (badge) badge.style.display = 'none';
-}
+document.getElementById('pageMarkAllRead')?.addEventListener('click', function() {
+    if (typeof markAllNotificationsRead === 'function') {
+        markAllNotificationsRead();
+    }
+    document.querySelectorAll('.notifications-row.unread').forEach(row => row.classList.remove('unread'));
+    document.querySelectorAll('.notifications-dot').forEach(dot => dot.remove());
+});
 </script>
 @endpush

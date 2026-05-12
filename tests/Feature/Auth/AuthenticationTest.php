@@ -26,8 +26,42 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertGuest();
+        $response->assertRedirect(route('verification.code', absolute: false));
+
+        $code = session('email_verification_code.testing_code');
+        $this->assertNotEmpty($code);
+
+        $response = $this->post('/email/verify-code', [
+            'code' => $code,
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect('/search');
+    }
+
+    public function test_unverified_users_must_enter_email_code_before_login(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertRedirect(route('verification.code', absolute: false));
+
+        $code = session('email_verification_code.testing_code');
+        $this->assertNotEmpty($code);
+
+        $response = $this->post('/email/verify-code', [
+            'code' => $code,
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertTrue($user->fresh()->hasVerifiedEmail());
+        $response->assertRedirect('/search');
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
@@ -49,6 +83,6 @@ class AuthenticationTest extends TestCase
         $response = $this->actingAs($user)->post('/logout');
 
         $this->assertGuest();
-        $response->assertRedirect('/');
+        $response->assertRedirect(route('login', absolute: false));
     }
 }

@@ -80,6 +80,24 @@
     .apply-btn:hover { background:#d4581f; }
     .empty-state { text-align:center;padding:60px 20px;color:var(--text-muted);grid-column:span 2; }
     .empty-state i { font-size:3rem;margin-bottom:12px;opacity:0.3;display:block; }
+    .prop-card { border-radius:8px; }
+    .prop-img { height:180px; }
+    .prop-rating.is-empty { color:var(--text-muted); }
+    .prop-rating.is-empty i { color:var(--border); }
+    @media (max-width: 1100px) {
+        .search-layout { grid-template-columns:1fr;height:auto; }
+        .filter-panel { height:auto;overflow:visible; }
+        .props-grid { overflow:visible;padding-right:0; }
+        .results-panel { overflow:visible; }
+    }
+    @media (max-width: 720px) {
+        .filter-panel { padding:16px; }
+        .results-controls, .pagination-wrap { align-items:flex-start;flex-direction:column;gap:12px; }
+        .props-grid { grid-template-columns:1fr; }
+        .empty-state { grid-column:span 1; }
+        .prop-img { height:210px; }
+        .map-toggle-btn { width:100%;justify-content:center; }
+    }
 </style>
 @endpush
 
@@ -217,6 +235,7 @@
                 $tags = $property->amenities
                     ? array_slice(array_map('trim', explode(',', $property->amenities)), 0, 2)
                     : [];
+                $rating = $property->reviews_avg_rating ? number_format($property->reviews_avg_rating, 1) : null;
                 $badge = match($index % 3) {
                     0 => ['class'=>'tag-popular','label'=>'POPULAR'],
                     1 => ['class'=>'tag-new',    'label'=>'NEW'],
@@ -239,7 +258,7 @@
                     <div class="prop-body">
                         <div style="display:flex;align-items:start;justify-content:space-between;gap:8px;margin-bottom:5px;">
                             <div class="prop-name">{{ $property->title }}</div>
-                            <div class="prop-rating"><i class="fas fa-star"></i> 4.8</div>
+                            <div class="prop-rating {{ $rating ? '' : 'is-empty' }}"><i class="fas fa-star"></i> {{ $rating ?? 'New' }}</div>
                         </div>
                         <div class="prop-dist">
                             <i class="fas fa-map-marker-alt"></i> {{ $property->address }}

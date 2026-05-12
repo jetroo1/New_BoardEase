@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Review;
 use App\Models\Property;
 use App\Models\Booking;
+use App\Notifications\NewReviewNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -76,13 +77,16 @@ class ReviewController extends Controller
             return back()->with('error', 'You have already reviewed this boarding house.');
         }
 
-        Review::create([
+        $review = Review::create([
             'user_id'     => $user->id,
             'property_id' => $request->property_id,
             'booking_id'  => $request->booking_id,
             'rating'      => $request->rating,
             'body'        => $request->body,
         ]);
+
+        $review->load(['property.owner', 'user']);
+        $review->property?->owner?->notify(new NewReviewNotification($review));
 
         return back()->with('success', 'Your review has been submitted!');
     }

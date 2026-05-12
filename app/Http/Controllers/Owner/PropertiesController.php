@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Models\User;
+use App\Notifications\PropertyUpdatedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -106,6 +108,16 @@ class PropertiesController extends Controller
         $data['photos'] = json_encode($merged);
 
         $property->update($data);
+        $changedFields = collect($property->getChanges())
+            ->keys()
+            ->reject(fn ($field) => $field === 'updated_at')
+            ->values()
+            ->all();
+
+        if ($property->is_approved && !empty($changedFields)) {
+            $this->notifyInterestedTenants($property->fresh(), $changedFields);
+        }
+
         return redirect()->route('owner.properties')->with('success', 'Property updated.');
     }
 
@@ -113,5 +125,18 @@ class PropertiesController extends Controller
     {
         Property::where('user_id', Auth::id())->findOrFail($id)->delete();
         return redirect()->route('owner.properties')->with('success', 'Property deleted.');
+    }
+
+    private function notifyInterestedTenants(Property $property, array $changedFields): void
+    {
+        User::where('role', 'tenant')
+            ->where('id', '!=', $property->user_id)
+            ->where(function ($query) use ($property) {
+                $query->whereHas('favorites', fn ($favorite) => $favorite->where('property_id', $property->id))
+                    ->orWhereHas('bookings', fn ($booking) => $booking->where('property_id', $property->id));
+            })
+            ->get()
+            ->filter(fn (User $tenant) => $tenant->wantsNotification('new_listings_nearby'))
+            ->each(fn (User $tenant) => $tenant->notify(new PropertyUpdatedNotification($property, $changedFields)));
     }
 }

@@ -16,22 +16,26 @@
 
     <style>
         :root {
-            --navy: #1a2340;
-            --navy-light: #243050;
-            --navy-lighter: #2d3a5e;
-            --teal: #2ec4a5;
-            --teal-dark: #23a98d;
-            --orange: #e8692a;
-            --blue-accent: #3b82f6;
+            --navy: #0f3f5f;
+            --navy-light: #075985;
+            --navy-lighter: #0e7490;
+            --teal: #06b6d4;
+            --teal-dark: #0891b2;
+            --orange: #0ea5e9;
+            --blue-accent: #38bdf8;
             --green: #22c55e;
             --red: #ef4444;
             --yellow: #f59e0b;
             --purple: #8b5cf6;
-            --bg: #f0f4f8;
-            --card: #ffffff;
-            --text: #1e293b;
+            --bg: #edfaff;
+            --card: rgba(255, 255, 255, 0.78);
+            --text: #0f2741;
             --text-muted: #64748b;
-            --border: #e2e8f0;
+            --border: rgba(125, 211, 252, 0.34);
+            --glass-card: rgba(255, 255, 255, 0.74);
+            --glass-border: rgba(125, 211, 252, 0.38);
+            --glass-shadow: 0 18px 46px rgba(14, 116, 144, 0.12);
+            --app-bg: linear-gradient(135deg, #f8fdff 0%, #edfaff 42%, #ffffff 100%);
             --sidebar-w: 230px;
             --topbar-h: 64px;
         }
@@ -40,22 +44,49 @@
 
         body {
             font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
+            background: var(--app-bg);
             color: var(--text);
             min-height: 100vh;
             display: flex;
             transition: background 0.2s, color 0.2s;
         }
 
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(14, 165, 233, 0.055) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 165, 233, 0.045) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 84%, transparent 100%);
+        }
+
         .sidebar {
             width: var(--sidebar-w);
-            background: var(--navy);
+            background:
+                linear-gradient(180deg, rgba(8, 47, 73, 0.98), rgba(8, 145, 178, 0.90));
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             position: fixed;
             left: 0; top: 0; bottom: 0;
             z-index: 100;
+            box-shadow: 16px 0 50px rgba(14, 116, 144, 0.16);
+            overflow: hidden;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.10), transparent 36%),
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 26px);
+            opacity: 0.7;
         }
 
         .sidebar-logo {
@@ -73,6 +104,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem;
             flex-shrink: 0;
+            box-shadow: 0 12px 28px rgba(34, 211, 238, 0.28);
         }
 
         .sidebar-logo-text { display: flex; flex-direction: column; }
@@ -128,12 +160,14 @@
 
         .topbar {
             height: var(--topbar-h);
-            background: var(--card);
+            background: rgba(248, 253, 255, 0.78);
             border-bottom: 1px solid var(--border);
             display: flex; align-items: center;
             padding: 0 28px; gap: 16px;
             position: sticky; top: 0; z-index: 50;
             transition: background 0.2s, border-color 0.2s;
+            backdrop-filter: blur(18px);
+            box-shadow: 0 10px 30px rgba(14, 116, 144, 0.07);
         }
 
         .search-bar { flex: 1; max-width: 420px; position: relative; }
@@ -145,7 +179,7 @@
             font-family: 'DM Sans', sans-serif;
             font-size: 0.875rem;
             color: var(--text);
-            background: var(--bg);
+            background: rgba(255,255,255,0.74);
             outline: none;
             transition: border-color 0.2s;
         }
@@ -228,11 +262,162 @@
 
         .notif-badge {
             position: absolute; top: -3px; right: -3px;
-            width: 14px; height: 14px;
+            min-width: 16px; height: 16px; padding: 0 4px;
             background: var(--red); border-radius: 50%;
             font-size: 0.6rem; color: #fff;
             display: flex; align-items: center; justify-content: center;
             font-weight: 700; border: 2px solid var(--card);
+        }
+
+        .notification-shell { position: relative; }
+        .notification-dropdown {
+            position: absolute;
+            top: 46px;
+            right: 0;
+            width: min(380px, calc(100vw - 28px));
+            max-height: 520px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1200;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            box-shadow: 0 24px 70px rgba(14, 116, 144, 0.22);
+            backdrop-filter: blur(22px);
+            transform-origin: top right;
+        }
+        .notification-dropdown.show {
+            display: flex;
+            animation: dropdownPop 0.16s ease both;
+        }
+        .notification-dropdown-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .notification-dropdown-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .notification-mark-all {
+            border: none;
+            background: transparent;
+            color: var(--teal-dark);
+            font: 700 0.78rem 'DM Sans', sans-serif;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .notification-list {
+            overflow-y: auto;
+            max-height: 390px;
+            padding: 8px;
+        }
+        .notification-item {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            border-radius: 14px;
+            padding: 11px 10px;
+            display: flex;
+            gap: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+        }
+        .notification-item:hover {
+            background: rgba(14, 165, 233, 0.08);
+            border-color: rgba(14, 165, 233, 0.18);
+            transform: translateY(-1px);
+        }
+        .notification-item.unread {
+            background: rgba(6, 182, 212, 0.12);
+            border-color: rgba(6, 182, 212, 0.22);
+        }
+        .notification-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            color: #0284c7;
+            background: rgba(14, 165, 233, 0.13);
+        }
+        .notification-item-icon.booking { color: #0ea5e9; background: rgba(14, 165, 233, 0.14); }
+        .notification-item-icon.message { color: #06b6d4; background: rgba(6, 182, 212, 0.14); }
+        .notification-item-icon.property { color: #0891b2; background: rgba(8, 145, 178, 0.14); }
+        .notification-item-icon.review { color: #f59e0b; background: rgba(245, 158, 11, 0.14); }
+        .notification-item-icon.payment { color: #16a34a; background: rgba(34, 197, 94, 0.14); }
+        .notification-item-icon.system { color: #64748b; background: rgba(100, 116, 139, 0.13); }
+        .notification-item-main { min-width: 0; flex: 1; }
+        .notification-item-top {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .notification-item-title {
+            color: var(--text);
+            font-size: 0.84rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .notification-unread-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--teal);
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+        .notification-item-message {
+            margin-top: 3px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            line-height: 1.35;
+        }
+        .notification-item-time {
+            margin-top: 6px;
+            color: #0284c7;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .notification-empty,
+        .notification-loading {
+            padding: 28px 18px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.86rem;
+        }
+        .notification-spinner {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid rgba(14, 165, 233, 0.18);
+            border-top-color: var(--teal);
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 10px;
+        }
+        .notification-dropdown-footer {
+            border-top: 1px solid var(--border);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .notification-dropdown-footer a {
+            color: var(--teal-dark);
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-decoration: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .topbar-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
@@ -241,9 +426,9 @@
         .topbar-profile-name { font-size: 0.875rem; font-weight: 600; color: var(--text); }
         .topbar-profile-role { font-size: 0.72rem; color: var(--text-muted); }
 
-        .page-content { padding: 28px; flex: 1; }
+        .page-content { padding: 28px; flex: 1; position: relative; }
 
-        .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); transition: background 0.2s, border-color 0.2s; }
+        .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); transition: background 0.2s, border-color 0.2s; backdrop-filter: blur(14px); }
 
         .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.3px; }
         .badge-confirmed { background: #dcfce7; color: #16a34a; }
@@ -253,8 +438,8 @@
         .badge-cancelled { background: #fee2e2; color: #dc2626; }
 
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px; border-radius: 9px; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
-        .btn-primary { background: var(--navy); color: #fff; }
-        .btn-primary:hover { background: var(--navy-light); }
+        .btn-primary { background: linear-gradient(135deg, var(--navy-light), var(--teal)); color: #fff; }
+        .btn-primary:hover { background: linear-gradient(135deg, var(--navy), var(--teal-dark)); }
         .btn-teal { background: var(--teal); color: #fff; }
         .btn-teal:hover { background: var(--teal-dark); }
         .btn-orange { background: var(--orange); color: #fff; }
@@ -452,6 +637,104 @@
             from { opacity: 1; transform: translateY(0); }
             to   { opacity: 0; transform: translateY(-6px); }
         }
+
+        .sidebar > * { position: relative; z-index: 1; }
+        .nav-item {
+            border: 1px solid transparent;
+        }
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255,255,255,0.14);
+            border-color: rgba(255,255,255,0.12);
+            backdrop-filter: blur(8px);
+        }
+        .sidebar-logo {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(10px);
+        }
+        .sidebar-logo-icon {
+            background: linear-gradient(135deg, #22d3ee, #0284c7);
+            border-radius: 10px;
+        }
+        .sidebar-logo-sub { color: #67e8f9; }
+        .main-wrapper {
+            background: transparent;
+        }
+        .card,
+        .stat-card,
+        .map-section,
+        .bookings-section,
+        .recent-section,
+        .listings-card,
+        .requests-card,
+        .filter-panel,
+        .prop-card,
+        .booking-card,
+        .review-item,
+        .room-card,
+        .modal-card,
+        .fav-card,
+        .settings-card,
+        .profile-card,
+        .notification-card {
+            background: var(--glass-card) !important;
+            border-color: var(--glass-border) !important;
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(16px);
+        }
+        .card:hover,
+        .stat-card:hover,
+        .prop-card:hover,
+        .booking-card-mini:hover,
+        .request-item:hover,
+        .listing-item:hover {
+            box-shadow: 0 22px 54px rgba(14, 116, 144, 0.16) !important;
+        }
+        .search-suggestions,
+        .dropdown-menu,
+        .notification-dropdown,
+        #profileMenu,
+        #sidebarMenu {
+            background: rgba(255,255,255,0.88) !important;
+            border-color: var(--glass-border) !important;
+            backdrop-filter: blur(18px);
+            box-shadow: var(--glass-shadow) !important;
+        }
+        .badge-active,
+        .badge-confirmed {
+            background: rgba(6, 182, 212, 0.14) !important;
+            color: #0e7490 !important;
+        }
+        .btn-teal,
+        .btn-orange,
+        .apply-btn,
+        .reserve-btn,
+        .map-toggle-btn,
+        .btn-approve,
+        .send-btn {
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4) !important;
+            color: #fff !important;
+            box-shadow: 0 12px 28px rgba(14, 165, 233, 0.18);
+        }
+        .icon-btn,
+        .icon-action,
+        .toolbar-btn,
+        .call-action-btn,
+        .pg-btn,
+        .star-btn {
+            background: rgba(255,255,255,0.68) !important;
+            border-color: var(--glass-border) !important;
+            backdrop-filter: blur(12px);
+        }
+        .price-cell,
+        .view-all,
+        .action-link,
+        .suggestion-price,
+        .prop-dist i,
+        .filter-title i,
+        .breadcrumb .sep {
+            color: #0284c7 !important;
+        }
     </style>
 
     @stack('styles')
@@ -553,10 +836,30 @@
             <button class="icon-btn" onclick="toggleTheme()" id="themeToggleBtn" title="Toggle dark mode">
                 <i class="fas fa-moon" id="themeIcon"></i>
             </button>
-            <a href="{{ route('notifications') }}" class="icon-btn">
-                <i class="fas fa-bell"></i>
-                <span class="notif-badge">2</span>
-            </a>
+            <div class="notification-shell" id="notificationShell">
+                <button type="button" class="icon-btn" id="notificationBell" title="Notifications" aria-label="Notifications" aria-expanded="false">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-badge" id="notificationBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown" aria-live="polite">
+                    <div class="notification-dropdown-header">
+                        <div>
+                            <div class="notification-dropdown-title">Notifications</div>
+                            <div style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">Realtime BoardEase updates</div>
+                        </div>
+                        <button type="button" class="notification-mark-all" id="notificationMarkAll">Mark all read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-loading">
+                            <div class="notification-spinner"></div>
+                            Loading notifications...
+                        </div>
+                    </div>
+                    <div class="notification-dropdown-footer">
+                        <a href="{{ route('notifications') }}">View all notifications</a>
+                    </div>
+                </div>
+            </div>
             <a href="#" class="icon-btn" onclick="openHelp(); return false;">
                 <i class="fas fa-question-circle"></i>
             </a>
@@ -608,22 +911,28 @@ var _currentTheme = '{{ auth()->check() ? auth()->user()->theme : "light" }}';
 function applyTheme(theme) {
     var root = document.documentElement;
     if (theme === 'dark') {
-        root.style.setProperty('--bg',         '#0f1624');
-        root.style.setProperty('--card',       '#1a2340');
-        root.style.setProperty('--text',       '#e2e8f0');
-        root.style.setProperty('--text-muted', '#94a3b8');
-        root.style.setProperty('--border',     '#2d3a5e');
-        root.style.setProperty('--navy',       '#243050');
-        root.style.setProperty('--navy-light', '#2d3a5e');
+        root.style.setProperty('--app-bg',     'linear-gradient(135deg, #071826 0%, #082f49 48%, #0f2741 100%)');
+        root.style.setProperty('--bg',         '#082f49');
+        root.style.setProperty('--card',       'rgba(15, 39, 65, 0.78)');
+        root.style.setProperty('--glass-card', 'rgba(15, 39, 65, 0.74)');
+        root.style.setProperty('--glass-border','rgba(103, 232, 249, 0.20)');
+        root.style.setProperty('--text',       '#e0f7ff');
+        root.style.setProperty('--text-muted', '#9bd3e6');
+        root.style.setProperty('--border',     'rgba(103, 232, 249, 0.20)');
+        root.style.setProperty('--navy',       '#0f3f5f');
+        root.style.setProperty('--navy-light', '#075985');
         document.getElementById('themeIcon').className = 'fas fa-sun';
     } else {
-        root.style.setProperty('--bg',         '#f0f4f8');
-        root.style.setProperty('--card',       '#ffffff');
-        root.style.setProperty('--text',       '#1e293b');
+        root.style.setProperty('--app-bg',     'linear-gradient(135deg, #f8fdff 0%, #edfaff 42%, #ffffff 100%)');
+        root.style.setProperty('--bg',         '#edfaff');
+        root.style.setProperty('--card',       'rgba(255, 255, 255, 0.78)');
+        root.style.setProperty('--glass-card', 'rgba(255, 255, 255, 0.74)');
+        root.style.setProperty('--glass-border','rgba(125, 211, 252, 0.38)');
+        root.style.setProperty('--text',       '#0f2741');
         root.style.setProperty('--text-muted', '#64748b');
-        root.style.setProperty('--border',     '#e2e8f0');
-        root.style.setProperty('--navy',       '#1a2340');
-        root.style.setProperty('--navy-light', '#243050');
+        root.style.setProperty('--border',     'rgba(125, 211, 252, 0.34)');
+        root.style.setProperty('--navy',       '#0f3f5f');
+        root.style.setProperty('--navy-light', '#075985');
         document.getElementById('themeIcon').className = 'fas fa-moon';
     }
     _currentTheme = theme;
@@ -655,6 +964,12 @@ document.addEventListener('click', function(e) {
         var pm = document.getElementById('profileMenu');
         if (pm) pm.style.display = 'none';
     }
+    if (!e.target.closest('#notificationShell')) {
+        var nd = document.getElementById('notificationDropdown');
+        var nb = document.getElementById('notificationBell');
+        if (nd) nd.classList.remove('show');
+        if (nb) nb.setAttribute('aria-expanded', 'false');
+    }
     if (!e.target.closest('.sidebar-user')) {
         var sm = document.getElementById('sidebarMenu');
         if (sm) sm.style.display = 'none';
@@ -665,6 +980,247 @@ document.addEventListener('click', function(e) {
 });
 
 // ── Smart Search ───────────────────────────────────────────────
+// Notifications
+const currentUserId = @json(auth()->id());
+const notificationIndexUrl = @json(route('notifications'));
+const notificationReadUrlTemplate = @json(route('notifications.read', ['id' => '__ID__']));
+const notificationReadAllUrl = @json(route('notifications.readAll'));
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+let notificationItems = [];
+let notificationUnreadCount = 0;
+let notificationsLoaded = false;
+let notificationEchoBound = false;
+
+function notificationReadUrl(id) {
+    return notificationReadUrlTemplate.replace('__ID__', encodeURIComponent(id));
+}
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, function(char) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[char];
+    });
+}
+
+function iconForNotificationType(type) {
+    const icons = {
+        message: 'fas fa-comment-dots',
+        booking_request: 'fas fa-calendar-plus',
+        booking_status: 'fas fa-calendar-check',
+        review: 'fas fa-star',
+        matching_property: 'fas fa-house-chimney',
+        property_updated: 'fas fa-pen-to-square',
+        payment_confirmation: 'fas fa-receipt',
+        admin_announcement: 'fas fa-bullhorn'
+    };
+    return icons[type] || 'fas fa-bell';
+}
+
+function toneForNotificationType(type) {
+    if (type === 'message') return 'message';
+    if (['booking_request', 'booking_status'].includes(type)) return 'booking';
+    if (type === 'review') return 'review';
+    if (['matching_property', 'property_updated'].includes(type)) return 'property';
+    if (type === 'payment_confirmation') return 'payment';
+    return 'system';
+}
+
+function normalizeNotification(notification) {
+    return {
+        id: notification.id || `live-${Date.now()}`,
+        title: notification.title || 'BoardEase update',
+        message: notification.message || 'You have a new notification.',
+        type: notification.type || 'system',
+        category: notification.category || 'system',
+        action_url: notification.action_url || notificationIndexUrl,
+        read_at: notification.read_at || null,
+        unread: notification.unread ?? !notification.read_at,
+        time_ago: notification.time_ago || 'Just now',
+        icon: notification.icon || iconForNotificationType(notification.type || 'system'),
+        tone: notification.tone || toneForNotificationType(notification.type || 'system'),
+        metadata: notification.metadata || {}
+    };
+}
+
+function renderNotificationBadge(count) {
+    notificationUnreadCount = Number(count || 0);
+    const badge = document.getElementById('notificationBadge');
+    if (!badge) return;
+
+    if (notificationUnreadCount > 0) {
+        badge.textContent = notificationUnreadCount > 99 ? '99+' : notificationUnreadCount;
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function renderNotificationList() {
+    const list = document.getElementById('notificationList');
+    if (!list) return;
+
+    if (!notificationItems.length) {
+        list.innerHTML = `
+            <div class="notification-empty">
+                <i class="fas fa-bell-slash" style="font-size:1.35rem;color:#38bdf8;margin-bottom:8px;"></i>
+                <div>No notifications yet</div>
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = notificationItems.map(item => `
+        <button type="button" class="notification-item ${item.unread ? 'unread' : ''}" data-id="${escapeHtml(item.id)}">
+            <span class="notification-item-icon ${escapeHtml(item.tone)}"><i class="${escapeHtml(item.icon)}"></i></span>
+            <span class="notification-item-main">
+                <span class="notification-item-top">
+                    <span class="notification-item-title">${escapeHtml(item.title)}</span>
+                    ${item.unread ? '<span class="notification-unread-dot"></span>' : ''}
+                </span>
+                <span class="notification-item-message">${escapeHtml(item.message)}</span>
+                <span class="notification-item-time"><i class="fas fa-clock" style="font-size:0.68rem;margin-right:4px;"></i>${escapeHtml(item.time_ago)}</span>
+            </span>
+        </button>
+    `).join('');
+
+    list.querySelectorAll('.notification-item').forEach(button => {
+        button.addEventListener('click', function() {
+            const item = notificationItems.find(n => String(n.id) === String(this.dataset.id));
+            if (item) markNotificationRead(item.id, item.action_url);
+        });
+    });
+}
+
+function loadNotifications() {
+    const list = document.getElementById('notificationList');
+    if (list && !notificationsLoaded) {
+        list.innerHTML = `
+            <div class="notification-loading">
+                <div class="notification-spinner"></div>
+                Loading notifications...
+            </div>
+        `;
+    }
+
+    return fetch(notificationIndexUrl, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            notificationItems = (data.notifications || []).map(normalizeNotification);
+            notificationsLoaded = true;
+            renderNotificationBadge(data.unread_count || 0);
+            renderNotificationList();
+        })
+        .catch(() => {
+            if (list) {
+                list.innerHTML = '<div class="notification-empty">Notifications could not load right now.</div>';
+            }
+        });
+}
+
+function markNotificationRead(id, actionUrl) {
+    if (!id || String(id).startsWith('live-')) {
+        if (actionUrl) window.location.href = actionUrl;
+        return;
+    }
+
+    fetch(notificationReadUrl(id), {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            notificationItems = notificationItems.map(item => {
+                if (String(item.id) !== String(id)) return item;
+                return { ...item, unread: false, read_at: data.notification?.read_at || new Date().toISOString() };
+            });
+            renderNotificationBadge(data.unread_count || 0);
+            renderNotificationList();
+            if (actionUrl) window.location.href = actionUrl;
+        })
+        .catch(() => {
+            if (actionUrl) window.location.href = actionUrl;
+        });
+}
+
+function markAllNotificationsRead() {
+    fetch(notificationReadAllUrl, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    }).then(() => {
+        notificationItems = notificationItems.map(item => ({ ...item, unread: false, read_at: item.read_at || new Date().toISOString() }));
+        renderNotificationBadge(0);
+        renderNotificationList();
+    });
+}
+
+function initNotificationRealtime(retries = 0) {
+    if (!currentUserId || notificationEchoBound) return;
+
+    if (typeof window.Echo === 'undefined') {
+        if (retries < 20) setTimeout(() => initNotificationRealtime(retries + 1), 500);
+        return;
+    }
+
+    try {
+        notificationEchoBound = true;
+        window.Echo.private(`App.Models.User.${currentUserId}`)
+            .notification(notification => {
+                const item = normalizeNotification({
+                    ...notification,
+                    unread: true,
+                    read_at: null,
+                    time_ago: 'Just now'
+                });
+
+                notificationItems = [item, ...notificationItems.filter(existing => existing.id !== item.id)].slice(0, 20);
+                renderNotificationBadge(notificationUnreadCount + 1);
+                renderNotificationList();
+                setTimeout(loadNotifications, 700);
+            });
+    } catch (error) {
+        notificationEchoBound = false;
+        if (retries < 5) setTimeout(() => initNotificationRealtime(retries + 1), 1000);
+    }
+}
+
+document.getElementById('notificationBell')?.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const dropdown = document.getElementById('notificationDropdown');
+    const isOpen = dropdown.classList.toggle('show');
+    this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+    if (isOpen && !notificationsLoaded) {
+        loadNotifications();
+    }
+});
+
+document.getElementById('notificationMarkAll')?.addEventListener('click', function(e) {
+    e.stopPropagation();
+    markAllNotificationsRead();
+});
+
+loadNotifications();
+initNotificationRealtime();
+
 const searchInput      = document.getElementById('globalSearch');
 const suggestionsBox   = document.getElementById('searchSuggestions');
 const suggestionsUrl   = '{{ route("search.suggestions") }}';
