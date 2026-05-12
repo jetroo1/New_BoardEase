@@ -39,7 +39,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect('/search');
+        $response->assertRedirect('/dashboard');
         $this->assertTrue(User::where('email', 'test@example.com')->first()->hasVerifiedEmail());
     }
 }

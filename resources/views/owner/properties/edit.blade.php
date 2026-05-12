@@ -174,7 +174,7 @@
 
         {{-- Additional Photos --}}
         <div class="form-section-title" style="margin-top:8px;">
-            <i class="fas fa-images" style="color:var(--teal)"></i> Additional Photos (up to 4)
+            <i class="fas fa-images" style="color:var(--teal)"></i> Additional Photos (up to 6)
         </div>
         <div class="form-group">
 
@@ -209,7 +209,7 @@
             <input type="file" name="photos[]" class="form-input" accept="image/*" multiple
                    onchange="previewNewPhotos(this)">
             <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
-                New uploads are added to existing ones. Maximum 4 photos total.
+                New uploads are added to existing ones. Maximum 6 additional photos total.
             </div>
 
             {{-- Preview of newly selected files --}}
@@ -301,6 +301,15 @@ function previewNewPhotos(input) {
     const container = document.getElementById('newPhotoPreviews');
     container.innerHTML = '';
     if (!input.files) return;
+    const keptPhotos = document.querySelectorAll('input[name="keep_photos[]"]:checked').length;
+    const remainingSlots = Math.max(6 - keptPhotos, 0);
+
+    if (input.files.length > remainingSlots) {
+        alert(`You can add ${remainingSlots} more photo${remainingSlots === 1 ? '' : 's'} only. Maximum is 6 additional photos total.`);
+        input.value = '';
+        return;
+    }
+
     Array.from(input.files).forEach((file, i) => {
         const reader = new FileReader();
         reader.onload = e => {

@@ -79,7 +79,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return match($this->role) {
             'admin' => '/admin/dashboard',
             'owner' => '/owner/dashboard',
-            default => '/search',
+            default => '/dashboard',
         };
     }
 

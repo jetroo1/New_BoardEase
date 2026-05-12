@@ -1192,7 +1192,7 @@
                 <p class="section-copy">Reach out for help with listings, bookings, owner accounts, or renter questions.</p>
                 <div class="contact-grid">
                     <div class="contact-list">
-                        <div class="contact-item"><i class="fas fa-envelope"></i><div><strong>Email</strong><span>adminsupport@boardease.test</span></div></div>
+                        <div class="contact-item"><i class="fas fa-envelope"></i><div><strong>Email</strong><span>adminboardease@gmail.com</span></div></div>
                         <div class="contact-item"><i class="fas fa-phone"></i><div><strong>Phone</strong><span>+63 916 970 3318</span></div></div>
                         <div class="contact-item"><i class="fas fa-location-dot"></i><div><strong>Location</strong><span>Tagum City, Philippines</span></div></div>
                     </div>
@@ -1238,7 +1238,7 @@
                 </div>
                 <div><h4>Quick links</h4><div class="footer-links"><a href="{{ $exploreHref }}">Explore</a><a href="#about">About Us</a><a href="#contact">Contact Us</a><a href="#faq">FAQ</a></div></div>
                 <div><h4>For users</h4><div class="footer-links"><a href="{{ route('login') }}">Login</a><a href="{{ route('register') }}">Register</a><a href="{{ $listHref }}">List Property</a></div></div>
-                <div><h4>Contact</h4><div class="footer-links"><span>adminsupport@boardease.test</span><span>+63 916 970 3318</span><span>Tagum City, Philippines</span></div></div>
+                <div><h4>Contact</h4><div class="footer-links"><span>adminboardease@gmail.com</span><span>+63 916 970 3318</span><span>Tagum City, Philippines</span></div></div>
             </div>
             <div class="copyright">&copy; 2026 BoardEase. All rights reserved.</div>
         </div>

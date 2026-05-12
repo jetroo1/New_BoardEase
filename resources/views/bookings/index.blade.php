@@ -46,8 +46,11 @@
     [data-theme="dark"] .bc-label { color:#fb923c; }
 
     /* ── STATUS TRACKER ── */
-    .status-tracker { padding:16px 20px;border-top:1px solid var(--border);background:var(--bg); }
-    .tracker-label { font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:12px; }
+    .status-tracker { padding:18px 20px;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(236,254,255,0.72),rgba(255,255,255,0.56)); }
+    .tracker-head { display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px; }
+    .tracker-label { font-size:0.72rem;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;color:#0284c7;margin-bottom:3px;display:flex;align-items:center;gap:6px; }
+    .tracker-note { font-size:0.78rem;color:var(--text-muted);line-height:1.35; }
+    .tracker-chip { border:1px solid rgba(6,182,212,0.26);background:rgba(6,182,212,0.12);color:#0284c7;border-radius:999px;padding:6px 10px;font-size:0.72rem;font-weight:900;white-space:nowrap; }
 
     .tracker-steps { display:flex;align-items:flex-start;position:relative; }
     .tracker-steps::before {
@@ -57,27 +60,28 @@
         left:15px;
         right:15px;
         height:2px;
-        background:var(--border);
+        background:rgba(125,211,252,0.34);
         z-index:0;
     }
 
     .tracker-step { flex:1;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1; }
 
     .step-circle {
-        width:30px;height:30px;border-radius:50%;
+        width:34px;height:34px;border-radius:50%;
         display:flex;align-items:center;justify-content:center;
         font-size:0.75rem;font-weight:700;
         border:2px solid var(--border);
         background:var(--card);
         color:var(--text-muted);
         transition:all 0.3s;
-        margin-bottom:6px;
+        margin-bottom:7px;
+        box-shadow:0 8px 20px rgba(15,39,65,0.06);
     }
-    .step-circle.done             { background:var(--teal);border-color:var(--teal);color:#fff; }
+    .step-circle.done             { background:linear-gradient(135deg,#0ea5e9,#06b6d4);border-color:rgba(6,182,212,0.7);color:#fff; }
     .step-circle.inactive         { background:var(--card);border-color:var(--border);color:var(--text-muted); }
-    .step-circle.pending-active   { background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 0 0 4px rgba(232,105,42,0.15); }
-    .step-circle.confirmed-active { background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 0 0 4px rgba(32,178,140,0.15); }
-    .step-circle.completed-active { background:var(--blue-accent);border-color:var(--blue-accent);color:#fff;box-shadow:0 0 0 4px rgba(59,130,246,0.15); }
+    .step-circle.pending-active   { background:linear-gradient(135deg,#38bdf8,#06b6d4);border-color:#06b6d4;color:#fff;box-shadow:0 0 0 5px rgba(14,165,233,0.14); }
+    .step-circle.confirmed-active { background:linear-gradient(135deg,#0ea5e9,#06b6d4);border-color:var(--teal);color:#fff;box-shadow:0 0 0 5px rgba(6,182,212,0.16); }
+    .step-circle.completed-active { background:linear-gradient(135deg,#2563eb,#38bdf8);border-color:var(--blue-accent);color:#fff;box-shadow:0 0 0 5px rgba(59,130,246,0.15); }
     .step-circle.rejected         { background:#ef4444;border-color:#ef4444;color:#fff; }
     .step-circle.cancelled        { background:#94a3b8;border-color:#94a3b8;color:#fff; }
 
@@ -91,10 +95,10 @@
 
     .tracker-line-fill {
     position:absolute;
-    top:15px;
-    left:15px;
+    top:17px;
+    left:17px;
     height:2px;
-    background:var(--teal);
+    background:linear-gradient(90deg,#0ea5e9,#06b6d4);
     z-index:0;
     transition:width 0.4s ease;
     }
@@ -105,7 +109,7 @@
     .tracker-line-fill.cancelled      { background:#94a3b8; }
 
     /* status message below tracker */
-    .tracker-message { margin-top:10px;font-size:0.8rem;padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);color:var(--text); }
+    .tracker-message { margin-top:14px;font-size:0.82rem;padding:11px 12px;border-radius:12px;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.76);border:1px solid var(--glass-border);color:var(--text);box-shadow:0 10px 24px rgba(14,116,144,0.08); }
     .tracker-message.pending   { border-left:3px solid var(--orange); }
     .tracker-message.confirmed { border-left:3px solid var(--teal); }
     .tracker-message.completed { border-left:3px solid var(--blue-accent); }
@@ -117,6 +121,11 @@
 [data-theme="dark"] .tracker-message.completed { background:rgba(239,246,255,0.08);color:#93c5fd;border-color:rgba(191,219,254,0.25); }
 [data-theme="dark"] .tracker-message.rejected  { background:rgba(254,242,242,0.08);color:#fca5a5;border-color:rgba(252,165,165,0.25); }
 [data-theme="dark"] .tracker-message.cancelled { background:rgba(248,250,252,0.08);color:#94a3b8;border-color:rgba(226,232,240,0.25); }
+
+    .booking-insight { margin-top:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px; }
+    .booking-insight-item { border:1px solid var(--border);background:rgba(255,255,255,0.62);border-radius:11px;padding:9px 10px; }
+    .booking-insight-label { font-size:0.68rem;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);font-weight:900;margin-bottom:3px; }
+    .booking-insight-value { font-size:0.8rem;font-weight:900;color:var(--text); }
 
 
     /* Sidebar */
@@ -142,6 +151,7 @@
     .minimap-card .map-footer { padding:10px 14px;display:flex;align-items:center;justify-content:space-between; }
     .view-map-btn { font-size:0.78rem;color:var(--teal);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px; }
     #bookingsMap { height:140px; }
+    .mini-map-marker { width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;border:2px solid rgba(255,255,255,0.94);box-shadow:0 10px 22px rgba(14,165,233,0.30);font-size:12px; }
 
     .empty-state { text-align:center;padding:60px 20px;color:var(--text-muted); }
     .empty-state i { font-size:3rem;margin-bottom:12px;opacity:0.3; }
@@ -155,6 +165,11 @@
     border-radius: 50%;
     display: block;
 }
+    @media (max-width: 760px) {
+        .booking-insight { grid-template-columns:1fr; }
+        .tracker-head { flex-direction:column;align-items:flex-start; }
+        .tracker-chip { white-space:normal; }
+    }
 </style>
 @endpush
 
@@ -247,6 +262,14 @@
                     'cancelled' => ['icon' => 'fas fa-ban',           'text' => 'You cancelled this booking request.'],
                 ];
                 $msg = $trackerMessages[$booking->status] ?? $trackerMessages['pending'];
+                $nextStep = match($booking->status) {
+                    'pending' => 'Owner/admin review',
+                    'confirmed' => 'Move in on schedule',
+                    'completed' => 'Share your review',
+                    'cancelled' => 'Browse another stay',
+                    'rejected' => 'Try another property',
+                    default => 'Check booking status',
+                };
             @endphp
 
             <div class="booking-item" data-status="{{ $booking->status }}">
@@ -321,7 +344,13 @@
 
                 {{-- ── STATUS TRACKER ── --}}
                 <div class="status-tracker">
-                    <div class="tracker-label">Booking Status</div>
+                    <div class="tracker-head">
+                        <div>
+                            <div class="tracker-label"><i class="fas fa-route"></i> Booking Journey</div>
+                            <div class="tracker-note">Track every step from request to move-in without guessing what happens next.</div>
+                        </div>
+                        <span class="tracker-chip">{{ $nextStep }}</span>
+                    </div>
                     <div class="tracker-steps" style="position:relative;">
                         {{-- Filled line --}}
                         <div class="tracker-line-fill {{ $lineClass }}" style="width:{{ $lineWidth }}"></div>
@@ -351,6 +380,21 @@
                     <div class="tracker-message {{ $booking->status }}">
                         <i class="{{ $msg['icon'] }}"></i>
                         <span>{{ $msg['text'] }}</span>
+                    </div>
+
+                    <div class="booking-insight">
+                        <div class="booking-insight-item">
+                            <div class="booking-insight-label">Requested</div>
+                            <div class="booking-insight-value">{{ $booking->created_at->format('M d, Y') }}</div>
+                        </div>
+                        <div class="booking-insight-item">
+                            <div class="booking-insight-label">Move-in</div>
+                            <div class="booking-insight-value">{{ \Carbon\Carbon::parse($booking->start_date)->format('M d, Y') }}</div>
+                        </div>
+                        <div class="booking-insight-item">
+                            <div class="booking-insight-label">Stay total</div>
+                            <div class="booking-insight-value">₱{{ number_format($booking->total_price ?? $prop->price, 0) }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -430,7 +474,7 @@
         <div class="minimap-card">
             <div id="bookingsMap"></div>
             <div class="map-footer">
-                <a href="{{ route('search') }}" class="view-map-btn">
+                <a href="{{ route('search') }}#searchMap" class="view-map-btn">
                     <i class="fas fa-map-marked-alt"></i> VIEW MAP LOCATION
                 </a>
             </div>
@@ -466,7 +510,7 @@ function filterBookings(status, btn) {
 }
 
 // Mini map
-const bmap = L.map('bookingsMap', { zoomControl:false, dragging:false, scrollWheelZoom:false })
+const bmap = L.map('bookingsMap', { zoomControl:true, dragging:true, scrollWheelZoom:true })
     .setView([7.4479, 125.8085], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(bmap);
 const mini = L.divIcon({
@@ -481,5 +525,14 @@ L.marker([{{ $booking->property->latitude }}, {{ $booking->property->longitude }
     .bindPopup('{{ addslashes($booking->property->title) }}');
 @endif
 @endforeach
+
+setTimeout(() => {
+    document.querySelectorAll('#bookingsMap .leaflet-marker-icon > div').forEach(el => {
+        el.removeAttribute('style');
+        el.className = 'mini-map-marker';
+        el.innerHTML = '<i class="fas fa-home"></i>';
+    });
+    bmap.invalidateSize();
+}, 120);
 </script>
 @endpush

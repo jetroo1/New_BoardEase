@@ -151,10 +151,10 @@
 </div>
 
 {{-- Multiple Photos --}}
-<div class="form-section-title" style="margin-top:8px;"><i class="fas fa-images" style="color:var(--teal)"></i> Additional Photos (up to 4)</div>
+<div class="form-section-title" style="margin-top:8px;"><i class="fas fa-images" style="color:var(--teal)"></i> Additional Photos (up to 6)</div>
 <div class="form-group">
-    <input type="file" name="photos[]" class="form-input" accept="image/*" multiple>
-    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Select up to 4 additional photos.</div>
+    <input type="file" name="photos[]" class="form-input" accept="image/*" multiple onchange="limitAdditionalPhotos(this)">
+    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Select up to 6 additional photos.</div>
     @if(isset($property) && $property->photos)
         <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
             @foreach(json_decode($property->photos, true) as $photo)
@@ -239,6 +239,13 @@ function previewImage(input) {
         const reader = new FileReader();
         reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
         reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function limitAdditionalPhotos(input) {
+    if (input.files && input.files.length > 6) {
+        alert('You can upload up to 6 additional photos only.');
+        input.value = '';
     }
 }
 // ── Amenity Toggle ────────────────────────────────────────────

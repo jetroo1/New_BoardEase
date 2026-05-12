@@ -563,6 +563,35 @@
 </div>
 
 <script>
+(() => {
+    const landingUrl = @json(route('landing'));
+    const currentUrl = window.location.href;
+    const currentPath = window.location.pathname;
+
+    if (!['/login', '/register'].includes(currentPath)) {
+        return;
+    }
+
+    try {
+        const sameOriginReferrer = document.referrer && new URL(document.referrer).origin === window.location.origin;
+        const cameFromLanding = sameOriginReferrer && new URL(document.referrer).pathname === new URL(landingUrl).pathname;
+        const alreadySeeded = history.state && history.state.boardeaseAuthPage === true;
+
+        if (!cameFromLanding && !alreadySeeded) {
+            history.replaceState({ boardeaseAuthBackTarget: true }, '', currentUrl);
+            history.pushState({ boardeaseAuthPage: true }, '', currentUrl);
+        }
+
+        window.addEventListener('popstate', function(event) {
+            if (event.state && event.state.boardeaseAuthBackTarget) {
+                window.location.replace(landingUrl);
+            }
+        });
+    } catch (error) {
+        // Browser history support is optional; the auth page works normally without it.
+    }
+})();
+
 function switchTab(tab, btn) {
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));

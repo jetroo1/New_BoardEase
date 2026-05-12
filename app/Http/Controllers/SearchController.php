@@ -46,9 +46,15 @@ class SearchController extends Controller
             default      => $query->latest(),
         };
 
+        $mapProperties = (clone $query)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->limit(100)
+            ->get(['id', 'title', 'address', 'price', 'room_type', 'image', 'latitude', 'longitude', 'is_approved']);
+
         $properties = $query->paginate(12)->withQueryString();
 
-        return view('search.index', compact('properties'));
+        return view('search.index', compact('properties', 'mapProperties'));
     }
 
     public function suggestions(Request $request)

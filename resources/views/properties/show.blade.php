@@ -7,16 +7,24 @@
 <style>
     .detail-layout { display:grid;grid-template-columns:1fr 340px;gap:24px; }
 
-    .gallery { display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr;gap:6px;border-radius:14px;overflow:hidden;margin-bottom:24px;height:600px;cursor:pointer;position:relative; }
-    .gallery-main { grid-row:1/3; }
-    .gallery-main img { width:100%;height:100%;object-fit:cover;transition:transform 0.3s; }
-    .gallery-main:hover img { transform:scale(1.03); }
-    .gallery-main { overflow:hidden; }
-    .gallery-more { position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,0.7);color:#fff;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;display:flex;align-items:center;gap:5px; }
+    .gallery { display:grid;grid-template-columns:2fr 1fr;gap:8px;border-radius:18px;overflow:hidden;margin-bottom:24px;height:560px;position:relative;background:var(--glass-card);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow); }
+    .gallery-main,.gallery-side-item { position:relative;overflow:hidden;border:0;background:var(--bg);padding:0;cursor:pointer; }
+    .gallery-main img,.gallery-side-item img { width:100%;height:100%;object-fit:cover;transition:transform 0.3s, filter 0.3s;display:block; }
+    .gallery-main:hover img,.gallery-side-item:hover img { transform:scale(1.035);filter:brightness(0.94); }
+    .gallery-side { display:grid;grid-template-rows:1fr 1fr;gap:8px;min-height:0; }
+    .gallery-more-overlay { position:absolute;inset:0;background:linear-gradient(135deg,rgba(8,47,73,0.72),rgba(6,182,212,0.38));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-weight:900;text-align:center;backdrop-filter:blur(2px); }
+    .gallery-more-overlay i { font-size:1.45rem; }
+    .gallery-more { position:absolute;bottom:14px;right:14px;background:rgba(7,24,38,0.76);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:999px;padding:8px 13px;font-size:0.8rem;font-weight:800;display:flex;align-items:center;gap:6px;backdrop-filter:blur(10px); }
     .gallery-badges { position:absolute;top:12px;left:12px;display:flex;gap:6px; }
     .gallery-badge { padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:700; }
     .gb-popular { background:var(--orange);color:#fff; }
     .gb-verified { background:var(--teal);color:#fff; }
+    .verified-inline { display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(6,182,212,0.28);background:rgba(236,254,255,0.92);color:#0369a1;border-radius:999px;padding:5px 10px;font-size:0.72rem;font-weight:900;text-transform:uppercase;letter-spacing:0.3px; }
+    .trust-strip { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 4px; }
+    .trust-chip { background:var(--glass-card);border:1px solid var(--glass-border);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;box-shadow:0 12px 30px rgba(14,116,144,0.08);backdrop-filter:blur(14px); }
+    .trust-icon { width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:rgba(6,182,212,0.13);color:#0284c7;flex-shrink:0; }
+    .trust-title { font-size:0.8rem;font-weight:900;color:var(--text); }
+    .trust-sub { font-size:0.72rem;color:var(--text-muted);margin-top:2px;line-height:1.25; }
 
     .prop-header { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px; }
     .prop-title { font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700; }
@@ -67,6 +75,8 @@
     .no-reviews { font-size:0.875rem;color:var(--text-muted);padding:12px 0;margin-bottom:8px; }
 
     #propertyMap { height:200px;border-radius:10px;overflow:hidden; }
+    .property-map-marker { position:relative;background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;border:2px solid rgba(255,255,255,0.94);border-radius:999px;padding:7px 11px;font:900 12px 'DM Sans',sans-serif;box-shadow:0 14px 30px rgba(14,165,233,0.32);white-space:nowrap;transform:translate(-50%,-50%); }
+    .property-map-marker::after { content:'';position:absolute;left:50%;bottom:-7px;width:10px;height:10px;background:#06b6d4;border-right:2px solid rgba(255,255,255,0.94);border-bottom:2px solid rgba(255,255,255,0.94);transform:translateX(-50%) rotate(45deg);border-radius:2px; }
     .map-nearby { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px; }
     .nearby-item { display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:8px;padding:8px 10px; }
     .nearby-icon { font-size:0.9rem; }
@@ -92,6 +102,25 @@
     .reserve-btn { width:100%;padding:14px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:background 0.2s;letter-spacing:0.3px; }
     .reserve-btn:hover { background:#d4581f; }
     .guarantee-note { font-size:0.75rem;color:var(--text-muted);text-align:center;margin-top:10px; }
+    .photo-lightbox { position:fixed;inset:0;background:rgba(3,10,18,0.94);z-index:99999;display:none;align-items:center;justify-content:center;padding:28px; }
+    .photo-lightbox.active { display:flex; }
+    .photo-lightbox-img { max-width:min(1120px,92vw);max-height:82vh;border-radius:16px;object-fit:contain;box-shadow:0 24px 80px rgba(0,0,0,0.55); }
+    .photo-lightbox-close,.photo-lightbox-nav { position:absolute;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.10);color:#fff;border-radius:999px;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(12px);transition:background 0.2s,transform 0.2s; }
+    .photo-lightbox-close:hover,.photo-lightbox-nav:hover { background:rgba(255,255,255,0.18);transform:scale(1.04); }
+    .photo-lightbox-close { top:22px;right:24px;width:44px;height:44px;font-size:1rem; }
+    .photo-lightbox-nav { top:50%;width:46px;height:46px;transform:translateY(-50%);font-size:1rem; }
+    .photo-lightbox-nav:hover { transform:translateY(-50%) scale(1.04); }
+    .photo-lightbox-prev { left:26px; }
+    .photo-lightbox-next { right:26px; }
+    .photo-lightbox-count { position:absolute;left:50%;bottom:24px;transform:translateX(-50%);color:#fff;background:rgba(255,255,255,0.11);border:1px solid rgba(255,255,255,0.16);border-radius:999px;padding:8px 14px;font-size:0.82rem;font-weight:800;backdrop-filter:blur(12px); }
+    @media (max-width: 900px) {
+        .trust-strip { grid-template-columns:1fr; }
+        .gallery { grid-template-columns:1fr;height:auto; }
+        .gallery-main { height:360px; }
+        .gallery-side { grid-template-columns:1fr 1fr;grid-template-rows:180px; }
+        .photo-lightbox { padding:18px; }
+        .photo-lightbox-nav { width:40px;height:40px; }
+    }
 </style>
 @endpush
 
@@ -140,6 +169,12 @@
         : [];
     $extraPhotos  = is_array($extraPhotos) ? $extraPhotos : [];
     $totalExtras  = count($extraPhotos);
+    $galleryPhotos = array_values(array_filter(array_merge(
+        [$image],
+        array_map(fn ($photo) => Storage::url($photo), $extraPhotos)
+    )));
+    $previewPhotos = array_slice($galleryPhotos, 0, 3);
+    $hiddenPhotoCount = max(count($galleryPhotos) - 3, 0);
 
     $lat   = $property->latitude  ?? 7.4460;
     $lng   = $property->longitude ?? 125.8050;
@@ -152,69 +187,52 @@
      Right : up to 4 additional photos stacked
 ════════════════════════════════════════════ --}}
 <div style="position:relative;margin-bottom:24px;">
+    <div class="gallery">
+        <button type="button" class="gallery-main" onclick="openPhotoLightbox(0)" aria-label="View {{ $property->title }} photo 1">
+            <img src="{{ $previewPhotos[0] ?? $image }}" alt="{{ $property->title }}">
+        </button>
 
-    <div class="gallery" style="display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr;gap:6px;height:600px;border-radius:14px;overflow:hidden;">
-
-        {{-- Main photo --}}
-        <div style="overflow:hidden;height:600px;">
-            <img src="{{ $image }}" alt="{{ $property->title }}"
-                 style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s;"
-                 onmouseover="this.style.transform='scale(1.03)'"
-                 onmouseout="this.style.transform='scale(1)'">
-        </div>
-
-        {{-- Right column: 4 stacked slots --}}
-        <div style="display:grid;grid-template-rows:repeat(4,1fr);gap:6px;height:600px;">
-            @for($i = 0; $i < 4; $i++)
-            @php
-                $photoUrl  = isset($extraPhotos[$i]) ? Storage::url($extraPhotos[$i]) : null;
-                $isLast    = ($i === 3);
-                $remaining = $totalExtras - 4;
-            @endphp
-
-            @if($photoUrl)
-                <div style="position:relative;overflow:hidden;">
-                    <img src="{{ $photoUrl }}" alt="Photo {{ $i + 1 }}"
-                         style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s;"
-                         onmouseover="this.style.transform='scale(1.03)'"
-                         onmouseout="this.style.transform='scale(1)'">
-                    @if($isLast && $remaining > 0)
-                    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;pointer-events:none;">
-                        <span style="color:#fff;font-size:1.1rem;font-weight:700;">+{{ $remaining }} more</span>
-                    </div>
-                    @endif
-                </div>
-            @elseif($i < 2)
-                {{-- First 2 empty slots: show a dim placeholder --}}
-                <div style="overflow:hidden;background:#e2e8f0;">
-                    <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&q=80"
-                         alt="No photo"
-                         style="width:100%;height:100%;object-fit:cover;opacity:0.35;">
-                </div>
-            @else
-                {{-- Slots 3 & 4 when empty: subtle blank --}}
-                <div style="background:var(--bg);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;">
-                    <span style="font-size:0.72rem;color:var(--text-muted);">No photo</span>
-                </div>
-            @endif
+        <div class="gallery-side">
+            @for($i = 1; $i <= 2; $i++)
+                @php $photoUrl = $previewPhotos[$i] ?? null; @endphp
+                @if($photoUrl)
+                    <button type="button" class="gallery-side-item" onclick="openPhotoLightbox({{ $i }})" aria-label="View {{ $property->title }} photo {{ $i + 1 }}">
+                        <img src="{{ $photoUrl }}" alt="{{ $property->title }} photo {{ $i + 1 }}">
+                        @if($i === 2 && $hiddenPhotoCount > 0)
+                            <span class="gallery-more-overlay">
+                                <i class="fas fa-images"></i>
+                                <span>+{{ $hiddenPhotoCount }} more photos</span>
+                            </span>
+                        @endif
+                    </button>
+                @else
+                    <button type="button" class="gallery-side-item" onclick="openPhotoLightbox(0)" aria-label="View {{ $property->title }} photo">
+                        <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500&q=80" alt="Room preview" style="opacity:0.38;">
+                    </button>
+                @endif
             @endfor
         </div>
-
     </div>
 
-    {{-- Badges top-left --}}
     <div class="gallery-badges">
         <span class="gallery-badge gb-popular">POPULAR CHOICE</span>
+        @if($property->is_approved)
         <span class="gallery-badge gb-verified">VERIFIED</span>
+        @endif
     </div>
 
-    {{-- Label bottom-right --}}
-    <div class="gallery-more">
-        <i class="fas fa-images"></i> Official Pictures
-    </div>
-
+    <button type="button" class="gallery-more" onclick="openPhotoLightbox(0)">
+        <i class="fas fa-images"></i> View all {{ count($galleryPhotos) }} photos
+    </button>
 </div>
-{{-- END GALLERY --}}
+
+<div class="photo-lightbox" id="photoLightbox" aria-hidden="true">
+    <button type="button" class="photo-lightbox-close" onclick="closePhotoLightbox()" aria-label="Close photo viewer"><i class="fas fa-times"></i></button>
+    <button type="button" class="photo-lightbox-nav photo-lightbox-prev" onclick="movePhoto(-1)" aria-label="Previous photo"><i class="fas fa-chevron-left"></i></button>
+    <img src="" alt="Property photo" class="photo-lightbox-img" id="photoLightboxImg">
+    <button type="button" class="photo-lightbox-nav photo-lightbox-next" onclick="movePhoto(1)" aria-label="Next photo"><i class="fas fa-chevron-right"></i></button>
+    <div class="photo-lightbox-count" id="photoLightboxCount"></div>
+</div>
 
 <div class="detail-layout">
 
@@ -223,6 +241,11 @@
         <div class="prop-header">
             <div>
                 <h1 class="prop-title">{{ $property->title }}</h1>
+                @if($property->is_approved)
+                    <div style="margin:8px 0 10px;">
+                        <span class="verified-inline"><i class="fas fa-shield-alt"></i> Admin Verified</span>
+                    </div>
+                @endif
 
                 <div class="prop-rating-row">
                     <div class="stars">
@@ -252,6 +275,30 @@
                 <div class="prop-location">
                     <i class="fas fa-map-marker-alt"></i>
                     {{ $property->address }}
+                </div>
+
+                <div class="trust-strip">
+                    <div class="trust-chip">
+                        <div class="trust-icon"><i class="fas fa-user-shield"></i></div>
+                        <div>
+                            <div class="trust-title">Verified listing</div>
+                            <div class="trust-sub">Reviewed by BoardEase admin</div>
+                        </div>
+                    </div>
+                    <div class="trust-chip">
+                        <div class="trust-icon"><i class="fas fa-message"></i></div>
+                        <div>
+                            <div class="trust-title">Direct messaging</div>
+                            <div class="trust-sub">Ask owner before reserving</div>
+                        </div>
+                    </div>
+                    <div class="trust-chip">
+                        <div class="trust-icon"><i class="fas fa-map-location-dot"></i></div>
+                        <div>
+                            <div class="trust-title">Mapped location</div>
+                            <div class="trust-sub">Check nearby access points</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="prop-actions">
@@ -469,6 +516,61 @@
 
 @push('scripts')
 <script>
+const galleryPhotos = @json($galleryPhotos);
+let currentGalleryIndex = 0;
+
+function renderPhotoLightbox() {
+    const image = document.getElementById('photoLightboxImg');
+    const count = document.getElementById('photoLightboxCount');
+    if (!image || !count || !galleryPhotos.length) return;
+
+    image.src = galleryPhotos[currentGalleryIndex];
+    count.textContent = `${currentGalleryIndex + 1} / ${galleryPhotos.length}`;
+}
+
+function openPhotoLightbox(index = 0) {
+    if (!galleryPhotos.length) return;
+
+    const lightbox = document.getElementById('photoLightbox');
+    if (lightbox && lightbox.parentElement !== document.body) {
+        document.body.appendChild(lightbox);
+    }
+
+    currentGalleryIndex = Math.max(0, Math.min(index, galleryPhotos.length - 1));
+    renderPhotoLightbox();
+    lightbox?.classList.add('active');
+    lightbox?.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePhotoLightbox() {
+    document.getElementById('photoLightbox')?.classList.remove('active');
+    document.getElementById('photoLightbox')?.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+}
+
+function movePhoto(direction) {
+    if (!galleryPhotos.length) return;
+
+    currentGalleryIndex = (currentGalleryIndex + direction + galleryPhotos.length) % galleryPhotos.length;
+    renderPhotoLightbox();
+}
+
+document.getElementById('photoLightbox')?.addEventListener('click', function(event) {
+    if (event.target === this) {
+        closePhotoLightbox();
+    }
+});
+
+document.addEventListener('keydown', function(event) {
+    const lightbox = document.getElementById('photoLightbox');
+    if (!lightbox?.classList.contains('active')) return;
+
+    if (event.key === 'Escape') closePhotoLightbox();
+    if (event.key === 'ArrowLeft') movePhoto(-1);
+    if (event.key === 'ArrowRight') movePhoto(1);
+});
+
 const propLat     = {{ $lat }};
 const propLng     = {{ $lng }};
 const propTitle   = @json($property->title);
@@ -480,9 +582,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(pmap);
 
 const propIcon = L.divIcon({
-    html: `<div style="background:var(--orange,#e8692a);color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,0.25)">📍 ${propTitle}</div>`,
+    html: `<div class="property-map-marker">&#8369;${@json($price)}</div>`,
     className: '',
-    iconAnchor: [60, 28]
+    iconSize: [1, 1],
+    iconAnchor: [0, 0]
 });
 L.marker([propLat, propLng], { icon: propIcon })
     .addTo(pmap)
@@ -495,6 +598,7 @@ L.circle([propLat, propLng], {
     weight: 1.5
 }).addTo(pmap);
 
+setTimeout(() => pmap.invalidateSize(), 120);
 function toggleFavorite(propertyId) {
     const btn  = document.getElementById('favBtn');
     const icon = btn.querySelector('i');

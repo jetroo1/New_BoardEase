@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Conversation;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -30,12 +31,11 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
  * Optional — use if you want to show online presence indicators.
  */
 Broadcast::channel('conversation.{conversationId}', function ($user, $conversationId) {
-    // TODO: Check if the user is a participant in this conversation
-    // $conversation = \App\Models\Conversation::find($conversationId);
-    // if ($conversation && $conversation->hasParticipant($user->id)) {
-    //     return ['id' => $user->id, 'name' => $user->name];
-    // }
-    // return false;
+    $conversation = Conversation::find($conversationId);
 
-    return ['id' => $user->id, 'name' => $user->name]; // Allow all for now
+    if (! $conversation || ! $conversation->hasParticipant((int) $user->id)) {
+        return false;
+    }
+
+    return ['id' => $user->id, 'name' => $user->name];
 });

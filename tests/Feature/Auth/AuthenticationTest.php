@@ -37,7 +37,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticatedAs($user);
-        $response->assertRedirect('/search');
+        $response->assertRedirect('/dashboard');
     }
 
     public function test_unverified_users_must_enter_email_code_before_login(): void
@@ -61,7 +61,7 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        $response->assertRedirect('/search');
+        $response->assertRedirect('/dashboard');
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

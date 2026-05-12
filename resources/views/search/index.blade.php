@@ -36,6 +36,8 @@
     .promo-price { font-size:0.8rem;color:var(--teal); }
     .promo-badge { display:inline-block;background:var(--green);color:#fff;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-bottom:8px; }
     .results-panel { display:flex;flex-direction:column;gap:0;overflow:hidden; }
+    .results-panel.is-loading { opacity:0.55; pointer-events:none; transition:opacity 0.18s ease; }
+    .filter-panel.is-loading { opacity:0.72; pointer-events:none; transition:opacity 0.18s ease; }
     .results-header { margin-bottom:18px; }
     .results-header h2 { font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700; }
     .results-sub { font-size:0.85rem;color:var(--text-muted);margin-top:4px; }
@@ -46,7 +48,23 @@
     .breadcrumb .sep { color:var(--teal); }
     .breadcrumb .current { color:var(--text);font-weight:600; }
     .sort-select { border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;cursor:pointer;background:var(--card); }
-    .props-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px;overflow-y:auto;flex:1;padding-right:4px; }
+    .results-split { display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:16px;min-height:0;flex:1; }
+    .props-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px;overflow-y:auto;min-height:0;padding-right:4px; }
+    .map-panel { position:sticky;top:0;height:100%;min-height:520px;background:var(--glass-card);border:1px solid var(--glass-border);border-radius:18px;box-shadow:var(--glass-shadow);backdrop-filter:blur(18px);overflow:hidden;display:flex;flex-direction:column; }
+    .map-panel-header { padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px; }
+    .map-panel-title { font-size:0.95rem;font-weight:800;display:flex;align-items:center;gap:8px; }
+    .map-panel-title i { color:var(--teal); }
+    .map-panel-sub { font-size:0.75rem;color:var(--text-muted);margin-top:2px; }
+    .map-chip { border:1px solid rgba(6,182,212,0.22);background:rgba(6,182,212,0.12);color:#0284c7;border-radius:999px;padding:5px 10px;font-size:0.72rem;font-weight:800;white-space:nowrap; }
+    #searchMap { flex:1;min-height:440px;z-index:1; }
+    .map-empty { padding:22px;color:var(--text-muted);font-size:0.85rem;text-align:center; }
+    .map-popup { min-width:190px; }
+    .map-popup-img { width:100%;height:92px;object-fit:cover;border-radius:10px;margin-bottom:8px; }
+    .map-popup-title { font-weight:800;color:#0f2741;margin-bottom:3px; }
+    .map-popup-address { font-size:0.76rem;color:#64748b;margin-bottom:7px;line-height:1.3; }
+    .map-popup-price { color:#0284c7;font-weight:900; }
+    .verified-pill { display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(6,182,212,0.28);background:rgba(236,254,255,0.92);color:#0369a1;border-radius:999px;padding:4px 8px;font-size:0.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0.3px;box-shadow:0 8px 20px rgba(14,165,233,0.12); }
+    .prop-verified { position:absolute;bottom:10px;left:10px; }
     .prop-card { background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;transition:all 0.2s;cursor:pointer; }
     .prop-card:hover { box-shadow:0 8px 28px rgba(0,0,0,0.1);transform:translateY(-2px); }
     .prop-img { position:relative;height:160px;overflow:hidden; }
@@ -87,13 +105,17 @@
     @media (max-width: 1100px) {
         .search-layout { grid-template-columns:1fr;height:auto; }
         .filter-panel { height:auto;overflow:visible; }
+        .results-split { grid-template-columns:1fr; }
         .props-grid { overflow:visible;padding-right:0; }
+        .map-panel { position:relative;height:460px;min-height:460px;order:-1; }
         .results-panel { overflow:visible; }
     }
     @media (max-width: 720px) {
         .filter-panel { padding:16px; }
         .results-controls, .pagination-wrap { align-items:flex-start;flex-direction:column;gap:12px; }
         .props-grid { grid-template-columns:1fr; }
+        .map-panel { height:380px;min-height:380px; }
+        #searchMap { min-height:300px; }
         .empty-state { grid-column:span 1; }
         .prop-img { height:210px; }
         .map-toggle-btn { width:100%;justify-content:center; }
@@ -107,6 +129,21 @@
     $favoritedIds = auth()->check()
         ? \App\Models\Favorite::where('user_id', auth()->id())->pluck('property_id')->toArray()
         : [];
+
+    $mapItems = $mapProperties->map(fn ($property) => [
+        'id' => $property->id,
+        'title' => $property->title,
+        'address' => $property->address,
+        'price' => (float) $property->price,
+        'room_type' => ucfirst($property->room_type ?? 'Room'),
+        'lat' => (float) $property->latitude,
+        'lng' => (float) $property->longitude,
+        'image' => $property->image
+            ? Storage::url($property->image)
+            : 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80',
+        'url' => route('property.show', $property->id),
+        'verified' => (bool) $property->is_approved,
+    ])->values();
 @endphp
 
 <div class="search-layout">
@@ -225,6 +262,7 @@
             </select>
         </div>
 
+        <div class="results-split">
         <!-- Cards -->
         <div class="props-grid">
             @forelse($properties as $index => $property)
@@ -244,10 +282,13 @@
                 $isFav = in_array($property->id, $favoritedIds);
             @endphp
             <a href="{{ route('property.show', $property->id) }}" style="text-decoration:none;color:inherit;">
-                <div class="prop-card">
+                <div class="prop-card" data-property-id="{{ $property->id }}" onmouseenter="highlightMapMarker({{ $property->id }})">
                     <div class="prop-img">
                         <img src="{{ $image }}" alt="{{ $property->title }}">
                         <span class="prop-tag {{ $badge['class'] }}">{{ $badge['label'] }}</span>
+                        @if($property->is_approved)
+                        <span class="verified-pill prop-verified"><i class="fas fa-shield-alt"></i> Verified</span>
+                        @endif
                         <button class="save-btn {{ $isFav ? 'saved' : '' }}"
                                 id="fav-btn-{{ $property->id }}"
                                 onclick="event.preventDefault(); toggleFav({{ $property->id }})"
@@ -257,7 +298,12 @@
                     </div>
                     <div class="prop-body">
                         <div style="display:flex;align-items:start;justify-content:space-between;gap:8px;margin-bottom:5px;">
-                            <div class="prop-name">{{ $property->title }}</div>
+                            <div>
+                                <div class="prop-name">{{ $property->title }}</div>
+                                @if($property->is_approved)
+                                <div style="font-size:0.72rem;color:#0284c7;font-weight:800;margin-top:2px;"><i class="fas fa-circle-check"></i> Admin-approved listing</div>
+                                @endif
+                            </div>
                             <div class="prop-rating {{ $rating ? '' : 'is-empty' }}"><i class="fas fa-star"></i> {{ $rating ?? 'New' }}</div>
                         </div>
                         <div class="prop-dist">
@@ -288,11 +334,30 @@
             @endforelse
         </div>
 
+        <aside class="map-panel">
+            <div class="map-panel-header">
+                <div>
+                    <div class="map-panel-title"><i class="fas fa-map-location-dot"></i> Map Search</div>
+                    <div class="map-panel-sub">Explore approved boarding houses around Tagum</div>
+                </div>
+                <span class="map-chip">{{ $mapItems->count() }} pins</span>
+            </div>
+            @if($mapItems->count())
+                <div id="searchMap"></div>
+            @else
+                <div class="map-empty">
+                    <i class="fas fa-map" style="font-size:2rem;color:#38bdf8;margin-bottom:10px;"></i>
+                    <div>No mapped properties for this search yet.</div>
+                </div>
+            @endif
+        </aside>
+        </div>
+
         <!-- Pagination -->
         <div class="pagination-wrap">
             <div>{{ $properties->withQueryString()->links() }}</div>
-            <button class="map-toggle-btn" onclick="window.location='{{ route('search') }}?view=map'">
-                <i class="fas fa-map"></i> Show Map View
+            <button class="map-toggle-btn" onclick="document.querySelector('.map-panel')?.scrollIntoView({behavior:'smooth', block:'center'})">
+                <i class="fas fa-map"></i> Focus Map View
             </button>
         </div>
     </div>
@@ -301,6 +366,68 @@
 
 @push('scripts')
 <script>
+let searchMapItems = @json($mapItems);
+const searchMarkers = {};
+let searchMap = null;
+
+function money(value) {
+    return '₱' + Number(value || 0).toLocaleString();
+}
+
+function initSearchMap() {
+    const mapEl = document.getElementById('searchMap');
+    if (!mapEl || !searchMapItems.length || typeof L === 'undefined') return;
+
+    if (searchMap) {
+        searchMap.remove();
+        searchMap = null;
+    }
+    Object.keys(searchMarkers).forEach(key => delete searchMarkers[key]);
+
+    searchMap = L.map('searchMap', { scrollWheelZoom: true }).setView([7.4479, 125.8085], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(searchMap);
+
+    const bounds = [];
+    searchMapItems.forEach(item => {
+        const icon = L.divIcon({
+            html: `<div style="background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;border:2px solid rgba(255,255,255,.9);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;box-shadow:0 12px 28px rgba(14,165,233,.32);white-space:nowrap">${money(item.price)}</div>`,
+            className: '',
+            iconAnchor: [32, 18],
+        });
+
+        const marker = L.marker([item.lat, item.lng], { icon }).addTo(searchMap);
+        marker.bindPopup(`
+            <div class="map-popup">
+                <img class="map-popup-img" src="${item.image}" alt="">
+                <div class="map-popup-title">${item.verified ? '<i class="fas fa-circle-check" style="color:#0284c7"></i> ' : ''}${item.title}</div>
+                <div class="map-popup-address">${item.address}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                    <span class="map-popup-price">${money(item.price)}/mo</span>
+                    <a href="${item.url}" style="color:#0284c7;font-weight:900;text-decoration:none;">View</a>
+                </div>
+            </div>
+        `);
+        searchMarkers[item.id] = marker;
+        bounds.push([item.lat, item.lng]);
+    });
+
+    if (bounds.length > 1) {
+        searchMap.fitBounds(bounds, { padding: [30, 30] });
+    } else if (bounds.length === 1) {
+        searchMap.setView(bounds[0], 16);
+        Object.values(searchMarkers)[0].openPopup();
+    }
+}
+
+function highlightMapMarker(propertyId) {
+    if (!searchMap || !searchMarkers[propertyId]) return;
+    const marker = searchMarkers[propertyId];
+    searchMap.panTo(marker.getLatLng(), { animate: true, duration: 0.35 });
+    marker.openPopup();
+}
+
 function updatePrice(val) {
     val = Math.min(Math.max(parseInt(val) || 1000, 1000), 15000);
     document.getElementById('priceMax').textContent = '₱' + val.toLocaleString();
@@ -323,12 +450,16 @@ function submitFilters() {
     const form = document.getElementById('filterForm');
     if (!form) return;
 
-    if (form.requestSubmit) {
-        form.requestSubmit();
-        return;
+    const url = new URL(form.action, window.location.origin);
+    const formData = new FormData(form);
+
+    for (const [key, value] of formData.entries()) {
+        if (value !== '') {
+            url.searchParams.append(key, value);
+        }
     }
 
-    form.submit();
+    loadSearchResults(url.toString());
 }
 
 function submitFiltersSoon() {
@@ -364,13 +495,97 @@ function toggleFav(propertyId) {
 function sortProperties(val) {
     const url = new URL(window.location.href);
     url.searchParams.set('sort', val);
-    window.location.href = url.toString();
+    loadSearchResults(url.toString());
+}
+
+function extractMapItems(doc) {
+    const scripts = Array.from(doc.querySelectorAll('script'));
+
+    for (const script of scripts) {
+        const match = script.textContent.match(/let\s+searchMapItems\s*=\s*(.*?);\s*const\s+searchMarkers/s);
+        if (match) {
+            try {
+                return JSON.parse(match[1]);
+            } catch (error) {
+                return [];
+            }
+        }
+    }
+
+    return [];
+}
+
+function refreshSliderState() {
+    const slider = document.getElementById('priceSlider');
+    if (slider) {
+        updatePrice(slider.value);
+    }
+}
+
+async function loadSearchResults(url, pushState = true) {
+    const resultsPanel = document.querySelector('.results-panel');
+    const filterPanel = document.querySelector('.filter-panel');
+
+    if (!resultsPanel || !filterPanel) {
+        window.location.href = url;
+        return;
+    }
+
+    clearTimeout(window._filterSubmitTimer);
+    resultsPanel.classList.add('is-loading');
+    filterPanel.classList.add('is-loading');
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Search request failed');
+        }
+
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const nextResults = doc.querySelector('.results-panel');
+        const nextFilters = doc.querySelector('.filter-panel');
+
+        if (!nextResults || !nextFilters) {
+            throw new Error('Search response is incomplete');
+        }
+
+        if (searchMap) {
+            searchMap.remove();
+            searchMap = null;
+        }
+
+        filterPanel.replaceWith(nextFilters);
+        resultsPanel.replaceWith(nextResults);
+        searchMapItems = extractMapItems(doc);
+        refreshSliderState();
+        initSearchMap();
+
+        if (pushState) {
+            history.pushState({ boardeaseSearch: true }, '', url);
+        }
+    } catch (error) {
+        window.location.href = url;
+    }
 }
 
 // Init slider gradient on page load
-updatePrice(document.getElementById('priceSlider').value);
+refreshSliderState();
 
-document.getElementById('filterForm')?.addEventListener('change', function(event) {
+document.addEventListener('submit', function(event) {
+    if (event.target && event.target.id === 'filterForm') {
+        event.preventDefault();
+        submitFilters();
+    }
+});
+
+document.addEventListener('change', function(event) {
     if (event.target.matches('input[type="checkbox"], input[type="radio"]')) {
         submitFilters();
     }
@@ -381,22 +596,47 @@ document.getElementById('filterForm')?.addEventListener('change', function(event
     }
 });
 
-document.getElementById('priceInput')?.addEventListener('input', function() {
-    syncFromInput(this.value);
+document.addEventListener('input', function(event) {
+    if (event.target.id !== 'priceInput') return;
+
+    syncFromInput(event.target.value);
     submitFiltersSoon();
 });
 
-document.getElementById('priceInput')?.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter') {
+document.addEventListener('keydown', function(event) {
+    if (event.target.id === 'priceInput' && event.key === 'Enter') {
         event.preventDefault();
-        syncFromInput(this.value);
+        syncFromInput(event.target.value);
         submitFilters();
     }
 });
 
-document.getElementById('priceInput')?.addEventListener('blur', function() {
-    syncFromInput(this.value);
+document.addEventListener('blur', function(event) {
+    if (event.target.id !== 'priceInput') return;
+
+    syncFromInput(event.target.value);
     submitFilters();
+}, true);
+
+document.addEventListener('click', function(event) {
+    const paginationLink = event.target.closest('.pagination-wrap a[href]');
+    if (!paginationLink) return;
+
+    event.preventDefault();
+    loadSearchResults(paginationLink.href);
 });
+
+window.addEventListener('popstate', function() {
+    loadSearchResults(window.location.href, false);
+});
+
+initSearchMap();
+
+if (window.location.hash === '#searchMap') {
+    setTimeout(() => {
+        document.querySelector('.map-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        searchMap?.invalidateSize();
+    }, 250);
+}
 </script>
 @endpush

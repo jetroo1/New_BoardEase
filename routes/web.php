@@ -14,7 +14,8 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\NotificationController;
 
-Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/', [LandingController::class, 'index'])->name('landing.root');
+Route::get('/landing', [LandingController::class, 'index'])->name('landing');
 
 // ── Guest ─────────────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {

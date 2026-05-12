@@ -35,6 +35,7 @@ class PropertiesController extends Controller
             'latitude'    => 'nullable|numeric|between:-90,90',
             'longitude'   => 'nullable|numeric|between:-180,180',
             'image'       => 'nullable|image|max:2048',
+            'photos'      => 'nullable|array|max:6',
             'photos.*'    => 'nullable|image|max:2048',
         ]);
 
@@ -52,7 +53,7 @@ class PropertiesController extends Controller
             foreach ($request->file('photos') as $photo) {
                 $paths[] = $photo->store('properties', 'public');
             }
-            $data['photos'] = json_encode(array_slice($paths, 0, 4));
+            $data['photos'] = json_encode(array_slice($paths, 0, 6));
         }
 
         Property::create($data);
@@ -80,6 +81,7 @@ class PropertiesController extends Controller
             'latitude'    => 'nullable|numeric|between:-90,90',
             'longitude'   => 'nullable|numeric|between:-180,180',
             'image'       => 'nullable|image|max:2048',
+            'photos'      => 'nullable|array|max:6',
             'photos.*'    => 'nullable|image|max:2048',
         ]);
 
@@ -90,7 +92,7 @@ class PropertiesController extends Controller
             $data['image'] = $request->file('image')->store('properties', 'public');
         }
 
-        // Merge existing kept photos + newly uploaded photos, capped at 4
+        // Merge existing kept photos + newly uploaded photos, capped at 6.
         $existingPhotos = json_decode($property->photos ?? '[]', true) ?: [];
         $keepPhotos     = $request->input('keep_photos', []);
         $retained       = array_values(
@@ -104,7 +106,7 @@ class PropertiesController extends Controller
             }
         }
 
-        $merged         = array_slice(array_merge($retained, $newPaths), 0, 4);
+        $merged         = array_slice(array_merge($retained, $newPaths), 0, 6);
         $data['photos'] = json_encode($merged);
 
         $property->update($data);

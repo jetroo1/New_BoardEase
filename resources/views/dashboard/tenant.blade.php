@@ -29,11 +29,30 @@
     .badge-positive { background: #f5f3ff; color: var(--purple); }
     .stat-value { font-family: 'Syne', sans-serif; font-size: 1.7rem; font-weight: 700; }
     .stat-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 4px; }
+    .dashboard-link-card { color: inherit; text-decoration: none; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; display: block; }
+    .dashboard-link-card:hover { transform: translateY(-3px); box-shadow: 0 18px 35px rgba(14, 165, 233, 0.12); }
 
-    .map-section { background: var(--card); border-radius: 14px; border: 1px solid var(--border); margin-bottom: 24px; overflow: hidden; }
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .quick-action { background: rgba(255,255,255,0.74); border: 1px solid var(--glass-border); border-radius: 16px; padding: 15px 16px; display:flex; align-items:center; gap: 12px; color: var(--text); text-decoration:none; box-shadow: 0 12px 26px rgba(14,165,233,0.08); transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+    .quick-action:hover { transform: translateY(-2px); border-color: rgba(6,182,212,.42); box-shadow: 0 18px 36px rgba(14,165,233,.15); }
+    .quick-action-icon { width: 42px; height: 42px; border-radius: 13px; display:flex; align-items:center; justify-content:center; color:#fff; background: linear-gradient(135deg,#0ea5e9,#06b6d4); box-shadow: 0 12px 24px rgba(6,182,212,.24); flex-shrink:0; }
+    .quick-action strong { display:block; font-size:.88rem; }
+    .quick-action span span { display:block; color:var(--text-muted); font-size:.74rem; margin-top:2px; }
+
+    .map-section { background: var(--glass-card); border-radius: 18px; border: 1px solid var(--glass-border); margin-bottom: 24px; overflow: hidden; box-shadow: var(--glass-shadow); backdrop-filter: blur(18px); }
     .map-header { padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
     .map-header h3 { font-size: 1rem; font-weight: 700; display:flex;align-items:center;gap:8px; }
-    #dashboardMap { height: 260px; }
+    .map-title-dot { width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#06b6d4);box-shadow:0 0 0 5px rgba(6,182,212,0.12);display:inline-block; }
+    #dashboardMap { height: 300px; z-index: 1; }
+    .be-map-marker { position:relative; background:linear-gradient(135deg,#0ea5e9,#06b6d4); color:#fff; border:2px solid rgba(255,255,255,0.94); border-radius:999px; padding:7px 10px; font:900 12px 'DM Sans',sans-serif; box-shadow:0 14px 30px rgba(14,165,233,0.32); white-space:nowrap; transform:translate(-50%,-50%); }
+    .be-map-marker::after { content:''; position:absolute; left:50%; bottom:-7px; width:10px; height:10px; background:#06b6d4; border-right:2px solid rgba(255,255,255,0.94); border-bottom:2px solid rgba(255,255,255,0.94); transform:translateX(-50%) rotate(45deg); border-radius:2px; }
+    .be-map-marker.is-active { background:linear-gradient(135deg,#0369a1,#06b6d4); transform:translate(-50%,-50%) scale(1.08); }
+    .dashboard-map-popup { min-width:200px; font-family:'DM Sans',sans-serif; }
+    .dashboard-map-popup img { width:100%; height:92px; object-fit:cover; border-radius:10px; margin-bottom:8px; }
+    .dashboard-map-popup .popup-title { font-weight:900; color:#0f2741; margin-bottom:3px; }
+    .dashboard-map-popup .popup-address { font-size:0.76rem; color:#64748b; line-height:1.35; margin-bottom:7px; }
+    .dashboard-map-popup .popup-price { color:#0284c7; font-weight:900; }
+    .dashboard-map-popup .popup-link { color:#0284c7; font-weight:900; text-decoration:none; }
 
     .content-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
     .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -73,6 +92,17 @@
     .listing-price-block { text-align: right; }
     .listing-price { font-size:0.82rem;font-weight:700;color:var(--text); white-space:nowrap; }
     .price-mo { font-size: 0.68rem; color: var(--text-muted); }
+    @media (max-width: 1100px) {
+        .stats-grid,
+        .quick-actions { grid-template-columns: repeat(2, 1fr); }
+        .content-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+        .stats-grid,
+        .quick-actions { grid-template-columns: 1fr; }
+        .map-header { align-items: flex-start; flex-direction: column; gap: 10px; }
+        #dashboardMap { height: 340px; }
+    }
 </style>
 @endpush
 
@@ -87,33 +117,54 @@
 
 {{-- Stats --}}
 <div class="stats-grid">
-    <div class="stat-card">
+    <a href="{{ route('search') }}" class="stat-card dashboard-link-card" aria-label="Browse active listings">
         <div class="stat-top"><div class="stat-icon blue"><i class="fas fa-list"></i></div><span class="stat-badge badge-up">Live</span></div>
         <div class="stat-label">Active Listings</div>
         <div class="stat-value">{{ $recentProperties->count() }}</div>
-    </div>
-    <div class="stat-card">
+    </a>
+    <a href="{{ route('bookings.index') }}" class="stat-card dashboard-link-card" aria-label="Open my bookings">
         <div class="stat-top"><div class="stat-icon green"><i class="fas fa-calendar-check"></i></div><span class="stat-badge badge-stable">Stable</span></div>
         <div class="stat-label">My Bookings</div>
         <div class="stat-value">{{ $bookings->count() }}</div>
-    </div>
-    <div class="stat-card">
+    </a>
+    <a href="{{ route('favorites') }}" class="stat-card dashboard-link-card" aria-label="Open saved boards">
         <div class="stat-top"><div class="stat-icon orange"><i class="fas fa-heart"></i></div><span class="stat-badge badge-high">Saved</span></div>
         <div class="stat-label">Saved Boards</div>
         <div class="stat-value">{{ $savedCount }}</div>
-    </div>
-    <div class="stat-card">
+    </a>
+    <a href="{{ route('bookings.index') }}" class="stat-card dashboard-link-card" aria-label="Open pending bookings">
         <div class="stat-top"><div class="stat-icon purple"><i class="fas fa-clock"></i></div><span class="stat-badge badge-positive">Pending</span></div>
         <div class="stat-label">Pending Bookings</div>
         <div class="stat-value">{{ $bookings->where('status', 'pending')->count() }}</div>
-    </div>
+    </a>
+</div>
+
+<div class="quick-actions">
+    <a href="{{ route('search') }}#searchMap" class="quick-action">
+        <span class="quick-action-icon"><i class="fas fa-map-location-dot"></i></span>
+        <span><strong>Focus Map View</strong><span>Explore nearby rooms</span></span>
+    </a>
+    <a href="{{ route('chat') }}" class="quick-action">
+        <span class="quick-action-icon"><i class="fas fa-headset"></i></span>
+        <span><strong>Need Help?</strong><span>Open chat support</span></span>
+    </a>
+    <a href="{{ route('bookings.index') }}" class="quick-action">
+        <span class="quick-action-icon"><i class="fas fa-calendar-days"></i></span>
+        <span><strong>My Bookings</strong><span>Track reservations</span></span>
+    </a>
+    <a href="{{ route('favorites') }}" class="quick-action">
+        <span class="quick-action-icon"><i class="fas fa-heart"></i></span>
+        <span><strong>Saved Boards</strong><span>Review favorites</span></span>
+    </a>
 </div>
 
 {{-- Map: uses REAL DB coordinates --}}
 <div class="map-section">
     <div class="map-header">
-        <h3><span style="color:var(--teal)">●</span> Nearby Boarding Houses</h3>
-        <a href="{{ route('search') }}" class="btn btn-sm btn-outline">Expand Map</a>
+        <h3><span class="map-title-dot"></span> Nearby Boarding Houses</h3>
+        <a href="{{ route('search') }}#searchMap" class="btn btn-sm btn-outline">
+            <i class="fas fa-map-location-dot"></i> Open Full Map
+        </a>
     </div>
     <div id="dashboardMap"></div>
 </div>
@@ -266,11 +317,13 @@
 @php
     $mapData = $recentProperties->map(function($p) {
         return [
+            'id'      => $p->id,
             'name'    => $p->title,
             'address' => $p->address,
             'price'   => number_format($p->price, 0),
             'lat'     => $p->latitude,
             'lng'     => $p->longitude,
+            'image'   => $p->image ? Storage::url($p->image) : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&q=80',
             'url'     => route('property.show', $p->id),
         ];
     })->filter(function($p) {
@@ -279,40 +332,42 @@
 @endphp
 const mapProperties = @json($mapData);
 
-const map = L.map('dashboardMap', { zoomControl: true, scrollWheelZoom: false });
+const map = L.map('dashboardMap', { zoomControl: true, scrollWheelZoom: true });
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-const customIcon = L.divIcon({
-    html: `<div style="background:#e8692a;color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;font-family:DM Sans,sans-serif;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.2)">🏠</div>`,
-    className: '',
-    iconAnchor: [20, 16]
-});
-
 if (mapProperties.length > 0) {
     const bounds = [];
     mapProperties.forEach(p => {
-        const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(map);
+        const propertyIcon = L.divIcon({
+            html: `<div class="be-map-marker">&#8369;${p.price}</div>`,
+            className: '',
+            iconSize: [1, 1],
+            iconAnchor: [0, 0]
+        });
+
+        const marker = L.marker([p.lat, p.lng], { icon: propertyIcon }).addTo(map);
         marker.bindPopup(`
-            <div style="font-family:DM Sans,sans-serif;min-width:160px;">
-                <strong style="font-size:0.85rem;">${p.name}</strong><br>
-                <span style="font-size:0.75rem;color:#64748b;">${p.address}</span><br>
-                <span style="font-size:0.8rem;font-weight:700;color:#3b82f6;">₱${p.price}/mo</span><br>
-                <a href="${p.url}" style="font-size:0.75rem;color:#2ec4a5;font-weight:600;">View Details →</a>
+            <div class="dashboard-map-popup">
+                <img src="${p.image}" alt="">
+                <div class="popup-title">${p.name}</div>
+                <div class="popup-address">${p.address}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                    <span class="popup-price">&#8369;${p.price}/mo</span>
+                    <a class="popup-link" href="${p.url}">View</a>
+                </div>
             </div>
         `);
         bounds.push([p.lat, p.lng]);
     });
     map.fitBounds(bounds, { padding: [30, 30] });
 } else {
-    // Fallback center (Tagum City) if no properties have coordinates yet
     map.setView([7.4479, 125.8085], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 }
 
-// ─── Countdown Timer ──────────────────────────────────────────────────────────
+setTimeout(() => map.invalidateSize(), 120);
 @if($confirmedBooking)
 @php $moveOut = \Carbon\Carbon::parse($confirmedBooking->end_date)->toIso8601String(); @endphp
 (function() {

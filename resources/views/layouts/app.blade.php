@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{ auth()->check() ? auth()->user()->theme : 'light' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,6 +38,17 @@
             --app-bg: linear-gradient(135deg, #f8fdff 0%, #edfaff 42%, #ffffff 100%);
             --sidebar-w: 230px;
             --topbar-h: 64px;
+        }
+
+        html[data-theme="dark"] {
+            --app-bg: linear-gradient(135deg, #071826 0%, #082f49 48%, #0f2741 100%);
+            --bg: #082f49;
+            --card: rgba(15, 39, 65, 0.78);
+            --glass-card: rgba(15, 39, 65, 0.74);
+            --glass-border: rgba(103, 232, 249, 0.20);
+            --text: #e0f7ff;
+            --text-muted: #9bd3e6;
+            --border: rgba(103, 232, 249, 0.20);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -735,6 +746,151 @@
         .breadcrumb .sep {
             color: #0284c7 !important;
         }
+
+        [data-theme="dark"] body::before {
+            background-image:
+                linear-gradient(rgba(103, 232, 249, 0.055) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(103, 232, 249, 0.04) 1px, transparent 1px);
+        }
+        [data-theme="dark"] .topbar {
+            background: rgba(7, 24, 38, 0.82) !important;
+            border-color: var(--glass-border) !important;
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+        }
+        [data-theme="dark"] .search-bar input,
+        [data-theme="dark"] input,
+        [data-theme="dark"] select,
+        [data-theme="dark"] textarea,
+        [data-theme="dark"] .price-input,
+        [data-theme="dark"] .sort-select {
+            background: rgba(8, 47, 73, 0.72) !important;
+            color: var(--text) !important;
+            border-color: var(--glass-border) !important;
+        }
+        [data-theme="dark"] input::placeholder,
+        [data-theme="dark"] textarea::placeholder {
+            color: rgba(224, 247, 255, 0.48) !important;
+        }
+        [data-theme="dark"] .search-suggestions,
+        [data-theme="dark"] .dropdown-menu,
+        [data-theme="dark"] .dropdown-menu-card,
+        [data-theme="dark"] .notification-dropdown,
+        [data-theme="dark"] #profileMenu,
+        [data-theme="dark"] #sidebarMenu {
+            background: rgba(7, 24, 38, 0.94) !important;
+            border-color: var(--glass-border) !important;
+            color: var(--text) !important;
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.35) !important;
+        }
+        [data-theme="dark"] .suggestion-item:hover,
+        [data-theme="dark"] .suggestion-footer:hover,
+        [data-theme="dark"] .dropdown-menu-item:hover,
+        [data-theme="dark"] .notification-item:hover {
+            background: rgba(14, 165, 233, 0.12) !important;
+        }
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .quick-action,
+        [data-theme="dark"] .map-section,
+        [data-theme="dark"] .map-panel,
+        [data-theme="dark"] .bookings-section,
+        [data-theme="dark"] .recent-section,
+        [data-theme="dark"] .listings-card,
+        [data-theme="dark"] .requests-card,
+        [data-theme="dark"] .filter-panel,
+        [data-theme="dark"] .prop-card,
+        [data-theme="dark"] .booking-card,
+        [data-theme="dark"] .booking-card-mini,
+        [data-theme="dark"] .review-item,
+        [data-theme="dark"] .room-card,
+        [data-theme="dark"] .modal-card,
+        [data-theme="dark"] .fav-card,
+        [data-theme="dark"] .settings-card,
+        [data-theme="dark"] .profile-card,
+        [data-theme="dark"] .notification-card,
+        [data-theme="dark"] .notifications-card,
+        [data-theme="dark"] .overview-card,
+        [data-theme="dark"] .minimap-card {
+            background: var(--glass-card) !important;
+            border-color: var(--glass-border) !important;
+            color: var(--text) !important;
+            box-shadow: 0 22px 58px rgba(0, 0, 0, 0.24) !important;
+        }
+        [data-theme="dark"] .stat-icon.blue,
+        [data-theme="dark"] .stat-icon.green,
+        [data-theme="dark"] .stat-icon.orange,
+        [data-theme="dark"] .stat-icon.purple,
+        [data-theme="dark"] .nearby-icon,
+        [data-theme="dark"] .trust-icon,
+        [data-theme="dark"] .suggestion-icon {
+            background: rgba(14, 165, 233, 0.14) !important;
+            color: #67e8f9 !important;
+        }
+        [data-theme="dark"] .badge-high,
+        [data-theme="dark"] .badge-pending,
+        [data-theme="dark"] .countdown-wrap,
+        [data-theme="dark"] .instant-badge,
+        [data-theme="dark"] .ai-orange,
+        [data-theme="dark"] .notifications-tab,
+        [data-theme="dark"] .tracker-chip,
+        [data-theme="dark"] .verified-pill,
+        [data-theme="dark"] .verified-inline {
+            background: rgba(14, 165, 233, 0.12) !important;
+            border-color: rgba(103, 232, 249, 0.20) !important;
+            color: #7dd3fc !important;
+        }
+        [data-theme="dark"] .save-btn,
+        [data-theme="dark"] .icon-btn,
+        [data-theme="dark"] .icon-action,
+        [data-theme="dark"] .toolbar-btn,
+        [data-theme="dark"] .call-action-btn,
+        [data-theme="dark"] .pg-btn,
+        [data-theme="dark"] .star-btn {
+            background: rgba(8, 47, 73, 0.74) !important;
+            color: var(--text) !important;
+            border-color: var(--glass-border) !important;
+        }
+        [data-theme="dark"] .booking-status-pill,
+        [data-theme="dark"] .prop-tag,
+        [data-theme="dark"] .gallery-badge {
+            color: #fff !important;
+        }
+        [data-theme="dark"] .status-tracker,
+        [data-theme="dark"] .tracker-message,
+        [data-theme="dark"] .booking-insight-item,
+        [data-theme="dark"] .nearby-item,
+        [data-theme="dark"] .trust-chip {
+            background: rgba(8, 47, 73, 0.56) !important;
+            border-color: var(--glass-border) !important;
+            color: var(--text) !important;
+        }
+        [data-theme="dark"] .leaflet-popup-content-wrapper,
+        [data-theme="dark"] .leaflet-popup-tip {
+            background: rgba(7, 24, 38, 0.96) !important;
+            color: var(--text) !important;
+            box-shadow: 0 18px 44px rgba(0,0,0,0.34) !important;
+        }
+        [data-theme="dark"] .map-popup-title,
+        [data-theme="dark"] .dashboard-map-popup .popup-title,
+        [data-theme="dark"] .trust-title,
+        [data-theme="dark"] .booking-insight-value {
+            color: var(--text) !important;
+        }
+        [data-theme="dark"] .map-popup-address,
+        [data-theme="dark"] .dashboard-map-popup .popup-address,
+        [data-theme="dark"] .trust-sub {
+            color: var(--text-muted) !important;
+        }
+        [data-theme="dark"] .leaflet-control-zoom a {
+            background: rgba(8, 47, 73, 0.92) !important;
+            color: var(--text) !important;
+            border-color: var(--glass-border) !important;
+        }
+        [data-theme="dark"] .btn-outline {
+            background: rgba(8, 47, 73, 0.45) !important;
+            color: var(--text) !important;
+            border-color: var(--glass-border) !important;
+        }
     </style>
 
     @stack('styles')
@@ -910,6 +1066,7 @@ var _currentTheme = '{{ auth()->check() ? auth()->user()->theme : "light" }}';
 
 function applyTheme(theme) {
     var root = document.documentElement;
+    root.setAttribute('data-theme', theme);
     if (theme === 'dark') {
         root.style.setProperty('--app-bg',     'linear-gradient(135deg, #071826 0%, #082f49 48%, #0f2741 100%)');
         root.style.setProperty('--bg',         '#082f49');

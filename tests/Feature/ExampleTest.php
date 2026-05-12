@@ -19,4 +19,12 @@ class ExampleTest extends TestCase
         $response->assertOk();
         $response->assertSee('Find Your Perfect Boarding House in Tagum');
     }
+
+    public function test_the_named_landing_page_loads_for_guests(): void
+    {
+        $response = $this->get('/landing');
+
+        $response->assertOk();
+        $response->assertSee('Find Your Perfect Boarding House in Tagum');
+    }
 }
